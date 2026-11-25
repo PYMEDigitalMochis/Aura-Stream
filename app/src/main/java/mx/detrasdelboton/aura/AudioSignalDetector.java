@@ -76,7 +76,9 @@ final class AudioSignalDetector {
         windowCount=0;windowPower=0;
     }
     private void flushRun(){
-        if(runStart>=0&&runEnd-runStart>=MIN_SILENCE_SECONDS){
+        // PTS has microsecond resolution. Allow one microsecond of numerical
+        // rounding error at the inclusive 600 ms threshold.
+        if(runStart>=0&&runEnd-runStart+0.000001>=MIN_SILENCE_SECONDS){
             if(silences.size()>=MAX_FINDINGS)throw new IllegalArgumentException("Exceso de intervalos de silencio");
             silences.add(new Finding(Math.max(0,runStart),runEnd));
         }
