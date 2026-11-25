@@ -40,8 +40,8 @@
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/AndroidCodecAuditor.java",
-      "bytes": 10980,
-      "sha256": "d00319931b659f17ecd554b94162bae51e1f61c7a375f7578725897fa5bfbfb3"
+      "bytes": 11486,
+      "sha256": "f55c98be34ea97ceff5ec96b6627e84712f270ee45b2b6bd57eba69e89d9029e"
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/AndroidFrameSampler.java",
@@ -235,8 +235,8 @@
     },
     {
       "path": "tests/check_native_wiring.py",
-      "bytes": 1251,
-      "sha256": "26304e10dfb232659de8b51b2c7dd0384bec0c511062574c784c59d8dd4313e4"
+      "bytes": 1363,
+      "sha256": "5e842a01ffbbff9af80f23ba7cb1e25ca5681e353c985a4c4da1f5a73219390a"
     },
     {
       "path": "tests/check_pcm_ffmpeg.py",

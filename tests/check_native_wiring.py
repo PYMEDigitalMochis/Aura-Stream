@@ -15,4 +15,5 @@ codec=(r/'app/src/main/java/mx/detrasdelboton/aura/AndroidCodecAuditor.java').re
 assert 'inputFormat.getLong(MediaFormat.KEY_DURATION)' in codec
 assert 'meter.finish(expectedAudioSeconds)' in codec
 assert 'MAX_PIXELS=1920L*1080' in codec
+assert 'diagnostic(e)' in codec and 'e.getMessage()' in codec, 'Codec failure must preserve diagnostic message'
 print('PASS static wiring: decode sample, per-track audio coverage, 1080p guard, integrity recheck')

@@ -42,7 +42,7 @@ final class AndroidCodecAuditor {
             try{t=decodeOne(resolver,uri,track,duration,overallStart);}
             catch(InterruptedException e){throw e;}
             catch(Exception | LinkageError e){
-                t=new CodecAuditResult.TrackResult(track.index,audio,"failed","Error del códec/pista " +track.index+ ": "+e.getClass().getSimpleName(),0,null);
+                t=new CodecAuditResult.TrackResult(track.index,audio,"failed","Error del códec/pista " +track.index+ ": "+diagnostic(e),0,null);
             }
             list.add(t);
             if(!"completed".equals(t.status)){
@@ -55,6 +55,15 @@ final class AndroidCodecAuditor {
         }
         return new CodecAuditResult(decodeOK?"completed":hadTimeout?"timeout":"failed",!hasAudio?"not_applicable":audioOK?"completed":hadTimeout?"timeout":"failed",
                 decodeOK?"Decodificación hasta EOS de cada pista; no garantiza ausencia de defectos visuales":reasons.toString(),list);
+    }
+    /** Preserve actionable local error details without exposing document URIs or stack traces. */
+    private static String diagnostic(Throwable e){
+        String type=e.getClass().getSimpleName();
+        String detail=e.getMessage();
+        if(detail==null || detail.isEmpty())return type;
+        detail=detail.replaceAll("(?i)content://\\S+", "[document]").replace('\n',' ').replace('\r',' ').replace('\t',' ');
+        if(detail.length()>160)detail=detail.substring(0,160);
+        return type+": "+detail;
     }
     private static CodecAuditResult.TrackResult decodeOne(ContentResolver resolver,Uri uri,ReportContract.Track track,double declaredDuration,long overallStart) throws Exception {
         boolean audio=track.mime.startsWith("audio/");
