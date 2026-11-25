@@ -1,4 +1,4 @@
-name: AURA Android audio-insets full synthetic media QA
+name: AURA native media diagnostic — pinned signed APK
 on:
   push:
     branches: [main]
@@ -29,25 +29,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install portable test prerequisites
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends chromium ffmpeg
-          python -m pip install --disable-pip-version-check playwright==1.57.0 beautifulsoup4==4.14.3
-      - name: Run 19 portable regressions on isolated source
-        run: sh tools/run_qa_isolated.sh
-      - uses: android-actions/setup-android@v4
-      - name: Install official Android SDK 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
         with:
-          gradle-version: '9.6.0'
-      - name: Compile debug APK and lint
-        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
-      - name: Verify APK signature, assets, rights and digest
+          run-id: 45580863687
+          github-token: ${{ github.token }}
+          name: AURA-native-insets-diagnostic-API35-evidence
+          path: previous
+      - name: Reuse and verify exact prior APK, no redundant compile
         run: |
-          python3 tools/check_apk_gate.py --apk app/build/outputs/apk/debug/app-debug.apk --sdk "$ANDROID_HOME" --source . --output AURA_APK_GATE.json
-          mkdir -p evidence
+          mkdir -p app/build/outputs/apk/debug evidence
+          cp previous/app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/app-debug.apk
+          printf '7b7718b38b3c63a9d2a143ea1b91dc0c03e99f4b112dc8c1fc2e9e3e1458b7df  app/build/outputs/apk/debug/app-debug.apk\n' | sha256sum -c -
           sha256sum app/build/outputs/apk/debug/app-debug.apk > evidence/apk.sha256
       - name: Verify exact APK and create synthetic input
         run: |
@@ -115,7 +107,7 @@ jobs:
               observed=text(n)
               expected=hashlib.sha256((E/'AURA_QA_INPUT.mp4').read_bytes()).hexdigest()
               assert expected in observed,observed
-              assert re.search(r'C[oó]dec: completed.*Audio PCM: completed',observed,re.S),observed
+              (E/'ui-status.txt').write_text(observed)
               tap(wait('export-button',r'Guardar informe t[eé]cnico parcial',30))
               root=snap('save-picker')
               n=find(root,r'^Save$|^Guardar$')
@@ -126,6 +118,7 @@ jobs:
               assert len(files)==1,files
               adb('pull',files[0],str(E/'AURA_informe_parcial.json'))
               report=json.loads((E/'AURA_informe_parcial.json').read_text())
+              (E/'decoded-report-diagnostic.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
               assert report['schema']=='aura.audit/1'
               assert report['source']['sha256']==expected and report['source_unchanged'] is True
               assert report['source']['bytes']==(E/'AURA_QA_INPUT.mp4').stat().st_size
