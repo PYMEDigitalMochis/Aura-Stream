@@ -1,0 +1,8 @@
+2026-11-22 | Linux container | Java 21 | Python 3.13.5 | Node 22 | Chromium desktop
+PASS tests/check_contract.py: 15 rechazos; JSON parcial compatible; manifest permisos mínimos
+PASS tests/check_android_stubs.py: compila tres clases contra stubs NO SDK
+PASS tests/check_export.py: cinco pruebas exact bytes
+PASS tests/check_ui.py: Chromium escritorio 360 px
+PASS tests/check_adversarial_ui.py: seis controles bloqueados, rúbrica y decisiones solo lectura
+PASS tests/check_webview_lifecycle.py: detach-before-destroy + stale view guard
+NO EJECUTADO: Gradle/SDK, APK, Android físico, decodificadores

@@ -1,0 +1,7 @@
+AURA 2026-11-22 · Fuente Android 0.1.2-qa · Registro de pruebas de escritorio
+PASS check_contract.py: 15 rechazos adversariales, contrato aura.audit/1 compatible
+PASS check_android_stubs.py: 3 clases compiladas contra stubs, NO SDK real
+PASS check_export.py: 5/5 casos de exportación exacta/extra/truncada/corrupta/sin progreso
+PASS check_ui.py: Chromium 360px, importación de reporte parcial, bloqueos, sin red
+PASS check_adversarial_ui.py: Chromium 360px, 6 controles deshabilitados y rúbrica/decisiones solo lectura, 0 solicitudes HTTP
+NO EJECUTADO: Gradle/SDK/ADB/Emulador/Android físico; 5 detectores nativos, SEO semántico y ASR

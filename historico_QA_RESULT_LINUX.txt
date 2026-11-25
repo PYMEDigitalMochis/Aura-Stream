@@ -1,0 +1,16 @@
+AURA Android POC 0.1.1 — qa portable (2026-11-18)
+# check_contract.py
+OK: viewer source matches v0.3.2, sha256=77d0e5d1c75303ca8dcfbbb65b0017887ae6d3a7d94d211139e9ecff289cd3fa
+OK: manifest has no file or network permissions
+OK: javac portable core compile + 15 adversarial rejects
+OK: JS AURA v0.3.2 accepted Android partial JSON
+OK: JSON schema, metadata, 5 unexecuted detectors, review pending
+RESULT: portable checks pass; Android classes/APK/device NOT compiled or tested
+# check_ui.py
+OK: Chromium 360px adapter injects accepted JSON, disables unverified exports, no network; NOT Android physical QA
+# check_android_stubs.py
+OK: all 3 Java source files compile with minimal API signature stubs; NOT Android SDK/Gradle/APK
+# YAML check
+OK: workflow_dispatch only; minimum GitHub permissions. NOT EXECUTED.
+
+NOT DONE: Android SDK / Gradle / APK / physical Android / native media detectors.

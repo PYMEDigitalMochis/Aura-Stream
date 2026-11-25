@@ -1,0 +1,454 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark"><title>AURA — Revisión audiovisual privada</title><style>
+:root{font:16px system-ui,-apple-system,sans-serif;color-scheme:dark;background:#101722;color:#eef4fb}*{box-sizing:border-box}body{margin:0 auto;max-width:940px;padding:16px;line-height:1.5}h1{font-size:1.55rem;margin-bottom:4px}h2{font-size:1.18rem}h3{font-size:1rem;margin:0 0 4px}.muted{color:#afc3d2}.panel{background:#1d2a3a;border:1px solid #466078;border-radius:12px;padding:15px;margin:14px 0}label{display:block;font-weight:600;margin:10px 0 6px}input,select,textarea,button{font:inherit;min-height:46px;border:1px solid #8aa3b5;border-radius:7px;background:#152231;color:#fff;padding:8px;width:100%}button{background:#2c567a;cursor:pointer;font-weight:600;margin-top:8px}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffd174;outline-offset:2px}video{max-width:100%;width:100%;background:#000}#hash{overflow-wrap:anywhere;word-break:break-all}#notice{padding:12px;border:1px solid #6d90aa;border-radius:8px}#notice[data-kind=error]{border-color:#f59b9b;color:#ffc5c5}#notice[data-kind=ok]{border-color:#83c9ac;color:#beffe0}.finding{padding:12px 0;border-bottom:1px solid #476278}.finding p{margin:0}#results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}.finding{border:1px solid #526d81;border-radius:10px;padding:12px}textarea{min-height:130px}footer{font-size:.9rem;color:#b7c8d8;margin:25px 0}
+p,section,article,div,pre,textarea{overflow-wrap:anywhere;min-width:0}.rubricItem{border-top:1px solid #476278;padding:12px 0}.rubricItem textarea{min-height:70px}.rubricItem h3{margin:0 0 8px}#diffs p{font-size:.9rem;padding:4px 0;border-bottom:1px solid #354e63}#seoAnalysis p{padding:5px 0;border-bottom:1px solid #354e63}
+</style></head><body><header><h1>AURA · Revisión privada</h1><p class="muted">Lector local de informes y video · No publica · No modifica el original · Sin red</p></header><p id="notice" role="status" aria-live="polite">Selecciona un informe JSON generado por AURA. Las detecciones son candidatos, no errores confirmados.</p><section class="panel"><h2>1. Abrir informe</h2><label for="reportFile">Informe AURA (report.json)</label><input id="reportFile" type="file" accept=".json,application/json"><p class="muted">La versión debe ser <code>aura.audit/1</code>. Rechaza estructuras o intervalos inválidos sin modificar datos existentes.</p></section><section id="details" hidden><section class="panel"><h2>2. Identidad del video</h2><p id="identity"></p><p id="hash"></p><p id="coverage"></p><p id="omissions" class="muted"></p><label for="videoFile">Seleccionar video original para verificar SHA-256</label><input id="videoFile" type="file" accept="video/*,.mp4,.webm,.mkv"><p id="hashProgress" aria-live="polite"></p><button type="button" id="cancelHash" hidden>Cancelar cálculo SHA-256</button><p id="verified" class="muted"></p><video id="video" controls preload="none" playsinline aria-label="Reproductor del video bajo revisión"></video></section><section class="panel"><h2>3. Revisar candidatos</h2><p id="count"></p><div id="results"></div></section><section class="panel"><h2>4. Guardar decisiones</h2><p id="storage" class="muted">El almacenamiento local puede no ser permanente. Conserva un respaldo JSON independiente.</p><button type="button" id="export">Exportar decisiones JSON</button><label for="restore">Restaurar decisiones del mismo video</label><input type="file" id="restore" accept=".json,application/json"></section><section class="panel"><h2>5. Chequeo preliminar de capítulos</h2><p class="muted">Formato: <code>00:00 Introducción</code>, una línea por capítulo. Solo valida estructura temporal, no promesa narrativa ni posicionamiento.</p><label for="chapters">Tiempos y títulos de capítulos</label><textarea id="chapters" placeholder="00:00 Introducción&#10;00:15 Primera parte&#10;00:35 Conclusión"></textarea><button type="button" id="checkChapters">Validar capítulos</button><p id="seoResult" aria-live="polite"></p></section><section class="panel"><h2>6. Transcripción y diálogo</h2><p class="muted">Importa SRT, VTT o TXT: el sistema no transcribe audio automáticamente y no inventa marcas de tiempo para TXT.</p><label for="subtitleFile">Seleccionar subtítulos o transcripción</label><input id="subtitleFile" type="file" accept=".srt,.vtt,.txt,text/plain"><p id="subtitleInfo" aria-live="polite">Sin subtítulos.</p><label for="scriptText">Guion original (texto)</label><textarea id="scriptText" maxlength="100000" rows="7" placeholder="Pega el guion de esta versión aquí. No se guarda automáticamente en el navegador."></textarea><button id="compareScript" type="button">Comparar textos y detectar diferencias</button><p id="comparisonInfo" aria-live="polite">Se requiere guion y transcripción.</p><div id="diffs"></div></section>
+<section class="panel"><h2>7. Metadatos y SEO</h2><p class="muted">Controles formales basados en ayuda de YouTube; no estiman tráfico ni CTR.</p><label for="seoTitle">Título propuesto</label><input id="seoTitle" maxlength="500" placeholder="Título del video"><label for="seoDescription">Descripción propuesta</label><textarea id="seoDescription" maxlength="12000" rows="6" placeholder="Descripción, fuentes y capítulos si corresponden"></textarea><label for="seoKeyword">Frase clave principal (opcional)</label><input id="seoKeyword" maxlength="180"><button id="seoValidate" type="button">Comprobar reglas formales SEO</button><div id="seoAnalysis" aria-live="polite"></div></section>
+<section class="panel"><h2>8. Rúbrica editorial y derechos</h2><p class="muted">Evaluación humana estructurada; evidencia obligatoria para considerar una revisión completa. Jamás produce una aprobación automática.</p><div id="rubricItems"></div><button id="rubricCheck" type="button">Evaluar pendientes de revisión</button><p id="rubricInfo" aria-live="polite">Ocho áreas pendientes.</p></section>
+<section class="panel"><h2>9. Dossier e integración segura con el Centro</h2><p class="muted">El dossier incluye texto del guion y subtítulos. Es un archivo local sin cifrar; guárdalo de forma privada. El video no se incluye.</p><button id="exportDossier" type="button">Exportar dossier de auditoría JSON</button><label for="restoreDossier">Restaurar dossier (no sobrescribe decisiones locales)</label><input id="restoreDossier" type="file" accept=".json,application/json"><h3>Exportación aditiva al Centro comercial</h3><p class="muted">Requiere seleccionar y verificar el MP4 por SHA-256 y que la ficha de origen incluya una huella SHA-256 idéntica en files[].hash. Importa un respaldo esquema 1 del Centro: se genera una COPIA con nuevos registros de auditoría, sin sobrescribir el archivo ni la sesión original.</p><label for="centroImport">Respaldo JSON original del Centro</label><input id="centroImport" type="file" accept=".json,application/json"><p id="centroInfo" aria-live="polite">Ningún registro modificado.</p></section></section><footer>Estado editorial siempre sujeto a revisión humana, derechos y controles externos. SHA-256 calculado por bloques de 1 MiB (tope de archivo 512 MiB); la velocidad depende del teléfono. Se puede cancelar. Las decisiones exportadas no contienen el video ni autorizan publicarlo. v0.3.2 · Derivado adversarial; Centro original intacto.</footer><script>
+/* AURA core */
+/* AURA offline review: strict, side-effect-free validation. Version 0.2.0 */
+(function (root) {
+'use strict';
+const HASH=/^[a-f0-9]{64}$/i;
+const KINDS = new Set(['black','freeze','silence','decode','loudness']);
+const DECISIONS=new Set(['pending','confirmed','dismissed']);
+function obj(x){ return x!==null && typeof x==='object' && !Array.isArray(x); }
+function need(ok, msg){if(!ok) throw new Error(msg);}
+function limited(v,max,name){need(typeof v==='string' && v.length<=max,name+' inválido');return v;}
+function num(v){return typeof v==='number' && Number.isFinite(v) && v>=0;}
+function validateReport(r){
+ need(obj(r),'El informe no es un objeto.');
+ need(r.schema==='aura.audit/1','Versión de informe incompatible.');
+ need(obj(r.source),'Falta identidad del video.');
+ const s=r.source;
+ need(HASH.test(s.sha256||''),'Huella SHA-256 inválida.');
+ need(limited(s.name,255,'Nombre').length>0,'Falta nombre de video.');
+ need(Number.isSafeInteger(s.bytes)&&s.bytes>0,'Tamaño del original inválido.');
+ need(num(s.duration_s)&&s.duration_s>0&&s.duration_s<=12*3600,'Duración inválida.');
+ need(Array.isArray(r.findings) && r.findings.length<=2000,'Hallazgos excesivos o ausentes.');
+ need(obj(r.checks),'Sin estados de ejecución.');
+ need(Array.isArray(s.streams)&&s.streams.length>0&&s.streams.length<=32,'No existe inventario de pistas para determinar cobertura.');
+ need(r.editorial_status==='PENDING_HUMAN_REVIEW','El motor no puede afirmar estados editoriales distintos de revisión pendiente.');
+ const ids=new Set(), findings=[];
+ for(const f of r.findings){
+  need(obj(f),'Hallazgo ilegible.');
+  const id=limited(f.id,72,'ID'); need(/^[a-z0-9_-]+$/i.test(id),'ID de hallazgo inválido.');
+  need(!ids.has(id),'Hallazgos duplicados.');ids.add(id);
+  const kind=limited(f.kind,32,'Tipo');need(KINDS.has(kind),'Tipo de hallazgo desconocido.');
+  need(num(f.start_s)&&num(f.end_s) && f.start_s<=f.end_s && f.end_s<=s.duration_s+0.08,'Tiempos fuera de rango.');
+  findings.push({id,kind,start_s:f.start_s,end_s:f.end_s});
+ }
+ const REQUIRED=['decode','black','freeze','silence','loudness'];
+ need(Object.keys(r.checks).length===REQUIRED.length && REQUIRED.every(k=>Object.prototype.hasOwnProperty.call(r.checks,k)),'La cobertura técnica no contiene cinco controles obligatorios.');
+ for (const [k,v] of Object.entries(r.checks)) {
+  need(KINDS.has(k)&&obj(v),'Control desconocido.');
+  need(['completed','failed','timeout','not_applicable','not_run'].includes(v.status),'Estado técnico inválido.');
+ }
+ need(r.technical_status==='completed' || r.technical_status==='incomplete','Estado técnico no reconocido.');
+ const allComplete=REQUIRED.every(k=>['completed','not_applicable'].includes(r.checks[k].status));
+ need((r.technical_status==='completed')===allComplete,'Estado técnico contradice los resultados por control.');
+ const hasVideo=s.streams.some(t=>t.codec_type==='video');
+ const hasAudio=s.streams.some(t=>t.codec_type==='audio');
+ for(const k of REQUIRED){const applicable=k==='decode'?(hasVideo||hasAudio):['black','freeze'].includes(k)?hasVideo:hasAudio;
+  need((r.checks[k].status==='not_applicable')===!applicable,'Control incompatible con las pistas del video: '+k);
+ }
+ if(r.checks.decode.diagnostic_count>0) need(r.checks.decode.status!=='completed','No puede ignorarse evidencia de decodificación dañada.');
+ need(r.source_unchanged===true,'No está verificada la integridad del video original.');
+ return {name:s.name,sha256:s.sha256.toLowerCase(),bytes:s.bytes,duration_s:s.duration_s,
+   technical_status:r.technical_status,editorial_status:r.editorial_status,findings,
+   checks:Object.fromEntries(Object.entries(r.checks).map(([k,v])=>[k,v.status])),
+   not_evaluated:Array.isArray(r.not_evaluated)?r.not_evaluated.filter(x=>typeof x==='string').slice(0,30):[]};
+}
+function validateDecisions(a,report){
+ need(obj(a)&&a.schema==='aura.review/1','Respaldo de decisiones incompatible.');
+ need(a.source_sha256===report.sha256,'El respaldo corresponde a otro video.');
+ need(obj(a.decisions),'Faltan decisiones.');
+ const allowed=new Set(report.findings.map(f=>f.id));
+ const d=Object.create(null);need(Object.keys(a.decisions).length<=report.findings.length,'Demasiadas decisiones.');
+ for (const [k,v] of Object.entries(a.decisions)) {
+  need(allowed.has(k)&&DECISIONS.has(v),'Decisión desconocida o hallazgo inexistente.');
+  d[k]=v;
+ }
+ return d;
+}
+function chapterCheck(txt, duration){
+ need(typeof txt==='string'&&txt.length<=10000,'Capítulos demasiado largos.');
+ const lines=txt.split(/\r?\n/).filter(Boolean), times=[];
+ for (const l of lines) {
+   const m=l.match(/^\s*(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\s+\S/);
+   need(!!m,'Un capítulo no tiene tiempo o descripción válidos.');
+   const t=(m[1]?+m[1]*3600:0)+(+m[2])*60+(+m[3]);times.push(t);
+ }
+ if(times.length===0) return {valid:false,reason:'No hay capítulos.'};
+ if(times[0]!==0)return {valid:false,reason:'El primer capítulo debe empezar en 00:00.'};
+ if(times.length<3)return {valid:false,reason:'Se esperan al menos tres capítulos.'};
+ for(let i=0;i<times.length;i++) if((i&&times[i]-times[i-1]<10) || (i===times.length-1&&duration-times[i]<10))
+   return {valid:false,reason:'Capítulos desordenados, repetidos o tramos menores a 10 s.'};
+ if(times.some(t=>t>=duration))return {valid:false,reason:'Un capítulo excede la duración del video.'};
+ return {valid:true,reason:'Estructura temporal plausible; no garantiza que YouTube la muestre.'};
+}
+const API={validateReport,validateDecisions,chapterCheck};
+if(typeof module!=='undefined' && module.exports)module.exports=API;
+root.AURACore=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+/* AURA interface */
+/* Incremental SHA-256 */
+/* Standalone incremental SHA-256 (FIPS 180-4). No network, no WebCrypto or full-file RAM copy. */
+(function(root){'use strict';
+const K=Uint32Array.from([
+0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+const rot=(x,n)=>((x>>>n)|(x<<(32-n)))>>>0;
+class Sha256{
+ constructor(){this.h=Uint32Array.from([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);this.cache=new Uint8Array(64);this.used=0;this.bytes=0n;this.finalized=false;}
+ block(data,offset){const w=new Uint32Array(64);
+  for(let i=0;i<16;i++){const p=offset+4*i;w[i]=((data[p]<<24)|(data[p+1]<<16)|(data[p+2]<<8)|data[p+3])>>>0;}
+  for(let i=16;i<64;i++){const a=w[i-15],b=w[i-2];const s0=rot(a,7)^rot(a,18)^(a>>>3),s1=rot(b,17)^rot(b,19)^(b>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;}
+  let [a,b,c,d,e,f,g,h]=this.h;
+  for(let i=0;i<64;i++){const t1=(h+(rot(e,6)^rot(e,11)^rot(e,25))+((e&f)^(~e&g))+K[i]+w[i])>>>0;const t2=((rot(a,2)^rot(a,13)^rot(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
+   h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}
+  this.h[0]=(this.h[0]+a)>>>0;this.h[1]=(this.h[1]+b)>>>0;this.h[2]=(this.h[2]+c)>>>0;this.h[3]=(this.h[3]+d)>>>0;
+  this.h[4]=(this.h[4]+e)>>>0;this.h[5]=(this.h[5]+f)>>>0;this.h[6]=(this.h[6]+g)>>>0;this.h[7]=(this.h[7]+h)>>>0;
+ }
+ update(buf){if(this.finalized)throw Error('SHA-256 ya finalizado.');const data=buf instanceof Uint8Array?buf:new Uint8Array(buf);this.bytes+=BigInt(data.length);
+  let i=0;if(this.used){const take=Math.min(64-this.used,data.length);this.cache.set(data.subarray(0,take),this.used);this.used+=take;i+=take;if(this.used===64){this.block(this.cache,0);this.used=0;}}
+  for(;i+64<=data.length;i+=64)this.block(data,i);
+  if(i<data.length){this.cache.set(data.subarray(i),0);this.used=data.length-i;}return this;
+ }
+ hex(){if(this.finalized)throw Error('SHA-256 ya finalizado.');const bits=this.bytes*8n;const padLen=this.used<56?56-this.used:120-this.used;const pad=new Uint8Array(padLen);pad[0]=0x80;this.update(pad);const suffix=new Uint8Array(8);
+  for(let i=0;i<8;i++)suffix[7-i]=Number((bits>>BigInt(i*8))&255n);
+  this.update(suffix);this.finalized=true;return Array.from(this.h).map(n=>n.toString(16).padStart(8,'0')).join('');
+ }
+}
+async function hashFile(file,onProgress=()=>{},options={}){
+ const limit=options.maxBytes??512*1024*1024;
+ if(!file || !Number.isSafeInteger(file.size) || file.size<1 || file.size>limit)throw Error('Video fuera del límite de verificación local ('+Math.floor(limit/1024/1024)+' MiB).');
+ const sha=new Sha256(),step=1024*1024;
+ for(let offset=0;offset<file.size;offset+=step){if(options.signal?.aborted)throw Error('Verificación cancelada.');const data=new Uint8Array(await file.slice(offset,Math.min(offset+step,file.size)).arrayBuffer());if(options.signal?.aborted)throw Error('Verificación cancelada.');sha.update(data);onProgress(Math.min(1,(offset+data.length)/file.size));
+  await new Promise(ok=>setTimeout(ok,0));}
+ if(options.signal?.aborted)throw Error('Verificación cancelada.');return sha.hex();
+}
+const API={Sha256,hashFile};if(typeof module!=='undefined'&&module.exports)module.exports=API;root.AURASHA=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+/* UI */
+/* UI over AURACore, all offline and local-only. No remote scripts, network, camera or mic. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const MAX_REPORT=2*1024*1024,MAX_VIDEO=512*1024*1024;
+let report=null,decisions=Object.create(null),videoURL=null,verifiedVideo=false,persistenceAllowed=true,hashAbort=null,hashSequence=0;
+function msg(text,kind='info'){$('notice').textContent=text;$('notice').dataset.kind=kind;}
+function clean(el){while(el.firstChild)el.removeChild(el.firstChild)}
+function el(tag,text){let e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e}
+function fmt(s){return Number(s).toFixed(2)+' s'}
+function secLabel(k){return {black:'Imagen negra',freeze:'Imagen inmóvil',silence:'Volumen bajo',decode:'Decodificación',loudness:'Sonoridad'}[k]||k}
+function save(){if(!report)return;if(!persistenceAllowed){$('storage').textContent='Persistencia bloqueada: existe un registro local ilegible. Exporta las decisiones y recupera almacenamiento por separado; no se sobrescribió el registro anterior.';return;}try{localStorage.setItem('aura.review/1:'+report.sha256,JSON.stringify({schema:'aura.review/1',source_sha256:report.sha256,decisions}));persistenceAllowed=true;$('storage').textContent='Decisiones guardadas en este navegador. Exporta también un respaldo JSON.'}catch(e){persistenceAllowed=false;$('storage').textContent='No se pudo guardar en este navegador: exporta respaldo JSON.'}}
+function readPersisted(){decisions=Object.create(null);persistenceAllowed=true;try{const raw=localStorage.getItem('aura.review/1:'+report.sha256);if(raw){decisions=Object.assign(Object.create(null),AURACore.validateDecisions(JSON.parse(raw),report));}}catch(e){persistenceAllowed=false;msg('Registro de decisiones ilegible. No se ha sobrescrito; exporta antes de reparar.','error')}}
+function render(){if(!report)return;
+ $('details').hidden=false;
+ $('identity').textContent=report.name+' · '+fmt(report.duration_s)+' · '+report.bytes+' bytes';
+ $('hash').textContent=report.sha256;
+ $('coverage').textContent='Estado técnico: '+report.technical_status+' · Estado editorial: '+report.editorial_status+' · Controles: '+JSON.stringify(report.checks);
+ $('omissions').textContent='No evaluado: '+report.not_evaluated.join(', ');
+ $('verified').textContent=verifiedVideo?'Video original verificado por SHA-256.':'Video sin confirmar. Selecciona el archivo y compara su huella.';
+ const box=$('results');clean(box);
+ for(const f of report.findings){
+  const card=el('article');card.className='finding';
+  card.append(el('h3',f.id+' · '+secLabel(f.kind)),el('p',fmt(f.start_s)+' – '+fmt(f.end_s)));
+  const label=el('label','Decisión de revisión humana');label.htmlFor='status_'+f.id;
+  const select=el('select');select.id=label.htmlFor;
+  for(const [k,t] of [['pending','Pendiente'],['confirmed','Confirmado'],['dismissed','Descartado']]){const o=el('option',t);o.value=k;select.append(o)}
+  select.value=decisions[f.id]||'pending';select.addEventListener('change',()=>{decisions[f.id]=select.value;save();$('count').textContent=report.findings.length+' candidatos · '+report.findings.filter(x=>(decisions[x.id]||'pending')==='pending').length+' sin revisar';msg('Decisión registrada. No constituye autorización de publicación.','info')});
+  card.append(label,select);
+  const btn=el('button','Ir al intervalo');btn.type='button';btn.disabled=!verifiedVideo;
+  btn.addEventListener('click',()=>{if(verifiedVideo){$('video').currentTime=f.start_s;$('video').play().catch(()=>{});}});
+  card.append(btn);box.append(card);
+ }
+ $('count').textContent=report.findings.length+' candidatos · '+report.findings.filter(f=>(decisions[f.id]||'pending')==='pending').length+' sin revisar';
+}
+async function readJson(file,limit){if(!file||file.size>limit)throw new Error('Archivo ausente o demasiado grande.');return JSON.parse(await file.text())}
+$('reportFile').addEventListener('change',async e=>{
+ try{const source=await readJson(e.target.files[0],MAX_REPORT),r=AURACore.validateReport(source);
+  if(hashAbort)hashAbort.abort();hashSequence++;
+  if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null;}
+  $('video').removeAttribute('src');$('video').load();$('videoFile').value='';verifiedVideo=false;
+  report=r;readPersisted();render();msg('Informe compatible, pero la revisión editorial sigue pendiente.','ok');
+ }catch(err){msg('Informe rechazado: '+err.message,'error')}finally{e.target.value=''}
+});
+$('cancelHash').addEventListener('click',()=>{if(hashAbort){hashAbort.abort();msg('Cancelando verificación local…');}});
+$('videoFile').addEventListener('change',async e=>{
+ if(!report){msg('Importa primero el informe.','error');return;}
+ const token=++hashSequence;
+ if(hashAbort)hashAbort.abort();hashAbort=new AbortController();
+ verifiedVideo=false;if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null;}
+ $('video').removeAttribute('src');$('video').load();render();$('hashProgress').textContent='';$('cancelHash').hidden=false;
+ try{
+  const file=e.target.files[0];if(!file) return;
+  if(file.size!==report.bytes)throw new Error('El tamaño del video no coincide con el informe.');
+  if(file.size>MAX_VIDEO)throw new Error('Video superior a 512 MiB: verifica por SHA-256 desde Termux.');
+  const currentHash=report.sha256;
+  msg('Calculando SHA-256 por bloques de 1 MiB; sin red y sin cargar el video completo.');
+  const digest=await AURASHA.hashFile(file,(p)=>{if(token===hashSequence)$('hashProgress').textContent='Verificando: '+Math.round(p*100)+'%';},{signal:hashAbort.signal,maxBytes:MAX_VIDEO});
+  if(token!==hashSequence||report.sha256!==currentHash)throw new Error('El informe cambió durante la verificación.');
+  if(digest!==currentHash)throw new Error('SHA-256 distinto: el video no pertenece al informe.');
+  videoURL=URL.createObjectURL(file);$('video').src=videoURL;verifiedVideo=true;render();msg('Video y reporte asociados por SHA-256. Puedes revisar los intervalos.','ok');
+ }catch(err){if(token===hashSequence){verifiedVideo=false;if(videoURL){URL.revokeObjectURL(videoURL);videoURL=null;}$('video').removeAttribute('src');render();msg(err.message,'error');}}
+ finally{if(token===hashSequence){$('cancelHash').hidden=true;hashAbort=null;}e.target.value='';}
+});
+function exportJson(){if(!report)return msg('Importa un informe primero.','error');
+ const data={schema:'aura.review/1',source_sha256:report.sha256,decisions,exported_at:new Date().toISOString(),technical_status:report.technical_status,editorial_approved:false};
+ const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=el('a');a.href=u;a.download='AURA_revision_'+report.sha256.slice(0,12)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);msg('Descarga solicitada. Verifica el archivo en Descargas.','info');
+}
+$('export').addEventListener('click',exportJson);
+$('restore').addEventListener('change',async e=>{
+ try{if(!report)throw new Error('Primero selecciona el informe correspondiente.');
+  const d=AURACore.validateDecisions(await readJson(e.target.files[0],MAX_REPORT),report);
+  decisions=Object.assign(Object.create(null),d);save();render();msg('Decisiones restauradas para el video verificado por identificador SHA-256.','ok');
+ }catch(err){msg('Respaldo rechazado sin modificar decisiones: '+err.message,'error')}finally{e.target.value=''}
+});
+$('checkChapters').addEventListener('click',()=>{
+ if(!report)return msg('Importa un informe primero.','error');
+ try{const r=AURACore.chapterCheck($('chapters').value,report.duration_s);$('seoResult').textContent=r.reason;msg(r.valid?'Validación temporal superada, sujeto a revisión humana.':r.reason,r.valid?'ok':'error');}catch(err){msg(err.message,'error')}
+});
+window.AURAGetSession=()=>({report, decisions:Object.assign(Object.create(null),decisions),verifiedVideo});
+window.addEventListener('beforeunload',()=>{if(videoURL)URL.revokeObjectURL(videoURL)});
+})();
+
+
+</script><script>
+/* AURA Editorial v0.3 — offline, no network. Text matching is not speech recognition. */
+(function(root){'use strict';
+const fail=(message)=>{throw new Error(message);};
+const check=(v,m)=>{if(!v)fail(m);};
+const plain=(v,max,label)=>{check(typeof v==='string'&&v.length<=max,(label||'Texto')+' demasiado largo o inválido.');check(!v.includes('\u0000'),(label||'Texto')+' contiene datos nulos.');return v;};
+const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+const hash=/^[a-f0-9]{64}$/i;
+const words=text=>(text.match(/[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*|\p{N}+/gu)||[]).map(w=>w.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase());
+function ts(t){
+ const m=t.trim().match(/^(?:(\d{1,3}):)?([0-5]\d):([0-5]\d)[.,](\d{1,3})$/);
+ if(!m)fail('Marca de tiempo inválida: '+t.slice(0,25));
+ const n=(m[1]?Number(m[1])*3600:0)+Number(m[2])*60+Number(m[3])+Number(m[4].padEnd(3,'0'))/1000;
+ check(Number.isFinite(n)&&n<=43200,'Tiempo fuera de rango.');return n;
+}
+function parseSubtitles(data,filename,duration){
+ plain(data,1024*1024,'Subtítulos');plain(filename,256,'Nombre');
+ check(typeof duration==='number'&&Number.isFinite(duration)&&duration>0,'Duración del video desconocida.');
+ const ext=filename.split('.').pop().toLowerCase();check(['srt','vtt','txt'].includes(ext),'Usa .srt, .vtt o .txt.');
+ const raw=data.replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').trim();
+ if(ext==='txt')return {format:'TXT',timed:false,cues:[],text:raw,warnings:['TXT carece de tiempos: no se asignarán marcas de tiempo inventadas.']};
+ let blocks=raw.split(/\n\s*\n/);if(ext==='vtt')check(/^WEBVTT(?:\s|$)/.test(blocks[0]||''),'Cabecera WEBVTT ausente.');
+ const cues=[];let lineNumber=0;
+ for(let i=ext==='vtt'?1:0;i<blocks.length;i++){
+  let lines=blocks[i].split('\n').map(s=>s.trimEnd());
+  if(!lines.join('').trim())continue;
+  if(ext==='vtt'&&/^(?:NOTE(?:\s|$)|STYLE$|REGION$)/.test(lines[0]))continue;
+  if(!lines[0].includes('-->'))lines.shift();
+  const timing=lines.shift()||''; const m=timing.match(/^\s*(\S+)\s+-->\s+(\S+)(?:\s+.*)?$/);
+  check(!!m,'Bloque de subtítulos sin tiempos válidos: '+(i+1));
+  const start=ts(m[1]),end=ts(m[2]);
+  check(end>start&&end<=duration+0.25,'Subtítulo fuera del video: '+(i+1));
+  const text=lines.join(' ').trim();check(text.length<=3000,'Cue demasiado largo');
+  if(!text)continue;
+  cues.push({start_s:start,end_s:end,text});lineNumber++;
+  check(lineNumber<=3500,'Exceso de fragmentos temporales.');
+ }
+ check(cues.length>0,'No se encontraron subtítulos cronometrados.');
+ const warnings=[];
+ for(let i=1;i<cues.length;i++){
+  check(cues[i].start_s>=cues[i-1].start_s,'Subtítulos desordenados.');
+  if(cues[i].start_s<cues[i-1].end_s)warnings.push('Solapamiento entre fragmentos '+i+' y '+(i+1)+'.');
+ }
+ return {format:ext.toUpperCase(),timed:true,cues,text:cues.map(c=>c.text).join(' '),warnings:warnings.slice(0,8)};
+}
+function validateRestoredSubtitles(tr,duration){
+ check(object(tr)&&['TXT','SRT','VTT'].includes(tr.format),'Formato de transcripción restaurada inválido.');
+ check(typeof duration==='number'&&Number.isFinite(duration)&&duration>0,'Duración desconocida.');
+ plain(tr.text,1024*1024,'Transcripción');
+ check(Array.isArray(tr.cues),'Fragmentos del dossier inválidos.');
+ if(tr.format==='TXT'){
+  check(tr.timed===false&&tr.cues.length===0,'TXT no puede contener tiempos.');
+ }else{
+  check(tr.timed===true&&tr.cues.length>0&&tr.cues.length<=3500,'Número de fragmentos inválido.');
+  let previous=-1;const pieces=[];
+  for(const c of tr.cues){
+   check(object(c)&&typeof c.start_s==='number'&&Number.isFinite(c.start_s)&&c.start_s>=0, 'Inicio de subtítulo inválido.');
+   check(typeof c.end_s==='number'&&Number.isFinite(c.end_s)&&c.end_s>c.start_s&&c.end_s<=duration+.25,'Fin de subtítulo inválido.');
+   check(c.start_s>=previous,'Subtítulos restaurados desordenados.');
+   const t=plain(c.text,3000,'Fragmento');check(t.trim().length>0,'Fragmento vacío.');
+   previous=c.start_s;pieces.push(t);
+  }
+  check(pieces.join(' ')===tr.text,'El texto restaurado no coincide con los fragmentos temporales.');
+ }
+ return {format:tr.format,timed:tr.timed,text:tr.text,
+   cues:tr.cues.map(c=>({...c})),warnings:Array.isArray(tr.warnings)?tr.warnings.filter(x=>typeof x==='string').slice(0,8):[]};
+}
+function compareScript(script,subtitles){
+ plain(script,100000,'Guion');check(object(subtitles)&&typeof subtitles.text==='string','Importa transcripción primero.');
+ const A=words(script),B=words(subtitles.text),limit=1800,n=Math.min(A.length,limit),m=Math.min(B.length,limit),partial=A.length>limit||B.length>limit;
+ check(n&&m,'Se requieren textos con palabras.');
+ // LCS bounded: 1801*1801 * 2 = ~6.5 MiB. No cloud/LLM or hallucinated timestamps.
+ const W=m+1,dp=new Uint16Array((n+1)*W);
+ for(let i=n-1;i>=0;i--){const row=i*W,next=(i+1)*W;for(let j=m-1;j>=0;j--)dp[row+j]=A[i]===B[j]?dp[next+j+1]+1:Math.max(dp[next+j],dp[row+j+1]);}
+ const missing=[],extra=[];let i=0,j=0,matched=0;
+ while(i<n&&j<m){if(A[i]===B[j]){matched++;i++;j++;}
+  else if(dp[(i+1)*W+j]>=dp[i*W+j+1])missing.push({token:i+1,word:A[i++]});
+  else extra.push({token:j+1,word:B[j++]});}
+ while(i<n)missing.push({token:i+1,word:A[i++]});while(j<m)extra.push({token:j+1,word:B[j++]});
+ const cues=subtitles.cues||[];
+ // Find only actual timestamp for extra token in timed subtitle; omissions have no reliable time.
+ let starts=[],cursor=1;
+ for(const c of cues){starts.push({first:cursor,last:cursor+words(c.text).length-1,start_s:c.start_s,end_s:c.end_s});cursor+=words(c.text).length;}
+ const samples=(xs,withTime)=>{let res=[];for(let k=0;k<xs.length&&res.length<18;){let first=xs[k].token,group=[xs[k].word],t=k+1;while(t<xs.length&&xs[t].token===xs[t-1].token+1&&group.length<12){group.push(xs[t].word);t++;}const item={position_token:first,example:group.join(' ')};
+  if(withTime&&subtitles.timed){const c=starts.find(s=>first>=s.first&&first<=s.last);if(c){item.start_s=c.start_s;item.end_s=c.end_s;}}
+  res.push(item);k=t;}return res;};
+ return {kind:'textual_not_asr_verdict',script_words:A.length,transcript_words:B.length,matched_words:matched,script_unmatched:missing.length,transcript_extra:extra.length,partial,
+ missing_examples:samples(missing,false),extra_examples:samples(extra,true),
+ warning:partial?'Comparación limitada a los primeros 1800 tokens por texto; dividir en bloques para cobertura total.':'Las diferencias pueden ser variaciones naturales, errores de transcripción o de guion; requieren escucha humana.'};
+}
+function seo({title,description,keyword='',chapters=''},duration){
+ plain(title,500,'Título');plain(description,12000,'Descripción');plain(keyword,180,'Palabra clave');plain(chapters,10000,'Capítulos');
+ check(typeof duration==='number'&&Number.isFinite(duration)&&duration>0,'Duración inválida.');
+ const len=x=>Array.from(x).length,issues=[];let titleCount=len(title),descriptionCount=len(description);
+ if(!title.trim())issues.push({type:'block',rule:'Título ausente.'});else if(titleCount>100)issues.push({type:'block',rule:'Título supera 100 caracteres.'});
+ if(!description.trim())issues.push({type:'block',rule:'Descripción ausente.'});else if(descriptionCount>5000)issues.push({type:'block',rule:'Descripción supera 5000 caracteres.'});
+ const k=keyword.trim();const normal=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ if(k && !normal(title).includes(normal(k)))issues.push({type:'review',rule:'La frase clave indicada no figura literalmente en el título.'});
+ if(k && !normal(description).includes(normal(k)))issues.push({type:'review',rule:'La frase clave indicada no figura literalmente en la descripción.'});
+ let chaptersResult={valid:null,reason:'No se declararon capítulos.'};
+ if(chapters.trim()){
+  const core=root.AURACore || (typeof require==='function'?require('./aura_contract.js'):null);
+  check(core,'Falta validador temporal AURA.');chaptersResult=core.chapterCheck(chapters,duration);
+  if(!chaptersResult.valid)issues.push({type:'review',rule:chaptersResult.reason});
+ }
+ if(!issues.length)issues.push({type:'pass',rule:'Controles formales superados; SEO, CTR y retención no están acreditados.'});
+ return {title_chars:titleCount,description_chars:descriptionCount,chapters:chaptersResult,issues,approved:false};
+}
+const RUBRIC=[['promesa','Promesa y título coinciden con lo mostrado'],['gancho','Apertura explica por qué seguir mirando'],['explicacion','Explicación comprensible y sustentada'],['coherencia','El guion no se contradice'],['imagenes','Imágenes no simulan pruebas inexistentes'],['dialogo','Locución y guion revisados con escucha'],['derechos','Licencias y derechos acreditados'],['cierre','Conclusión y llamado a la acción adecuados']];
+function rubric(raw){check(object(raw),'Rúbrica ausente.');const output=[];
+ for(const [key,label] of RUBRIC){const d=raw[key]||{};check(object(d),'Rúbrica ilegible');const state=d.state||'pending';check(['pending','verified','problem'].includes(state),'Estado editorial inválido.');const evidence=plain(d.evidence||'',2000,'Evidencia');check(state==='pending'||evidence.trim().length>=8,'Toda revisión cerrada requiere evidencia concreta ('+key+').');output.push({key,label,state,evidence});}
+ return {items:output,pending:output.filter(x=>x.state==='pending').length,problems:output.filter(x=>x.state==='problem').length,
+ ready:false,notice:'La herramienta no autoriza publicación automáticamente, incluso si se completó la rúbrica.'};
+}
+function centroBackup(input,report,decisions,verifiedSHA){
+ check(verifiedSHA===true,'Verifica el video real por SHA-256 antes de crear el respaldo del Centro.');
+ check(object(input)&&input.schema===1&&Array.isArray(input.videos)&&input.videos.length<=200,'Respaldo del Centro incompatible.');
+ check(object(report)&&hash.test(report.sha256||''),'Falta informe AURA validado.');
+ check(object(decisions),'Decisiones ilegibles.');
+ // Strict unique matching; never link unrelated videos by title alone.
+ const matches=input.videos.map((v,i)=>({v,i})).filter(({v})=>object(v)&&v.fileName===report.name);
+ check(matches.length===1,'Debe existir exactamente una ficha con el nombre de archivo correspondiente en el Centro.');
+ const v=matches[0].v;check(Array.isArray(v.audits),'La ficha del Centro carece de matriz de auditoría.');
+ check(v.audits.length+report.findings.length<=500,'La matriz del Centro alcanzaría el límite de registros.');
+ const hashes=Array.isArray(v.files)?v.files.filter(object).map(f=>typeof f.hash==='string'?f.hash.toLowerCase():'').filter(h=>hash.test(h)):[];
+ check(hashes.length>0 && hashes.includes(report.sha256.toLowerCase()),'No se puede vincular por nombre: añade y verifica el SHA-256 del archivo en la ficha de origen antes de exportar una copia.');
+ check(hashes.every(h=>h===report.sha256.toLowerCase()),'La ficha contiene una identidad audiovisual diferente.');
+ const out=JSON.parse(JSON.stringify(input)),target=out.videos[matches[0].i],existing=new Set(target.audits.filter(x=>object(x)).map(x=>String(x.evidence||'')));
+ let added=0;
+ for(const f of report.findings){
+  const tag='AURA:'+report.sha256.toLowerCase()+':'+f.id;
+  if([...existing].some(e=>e.includes(tag)))continue;
+  const verdict=decisions[f.id]||'pending';check(['pending','confirmed','dismissed'].includes(verdict),'Decisión inválida.');
+  // Do not convert detections to editorial failures, or auto-approve.
+  target.audits.push({id:'aura-'+report.sha256.slice(0,12)+'-'+f.id,area:'AURA / '+f.kind,
+   expected:'Inspeccionar intervalo; distinguir recurso intencional de fallo.',
+   actual:'Candidato técnico '+f.id+' ['+Number(f.start_s).toFixed(2)+'–'+Number(f.end_s).toFixed(2)+' s], revisión: '+verdict,
+   evidence:tag+'; registro: '+f.kind+'; motor: AURA; evidencia técnica adicional en report.json',
+   date:new Date().toISOString().slice(0,10),version:String(target.version||'').slice(0,100),
+   status:'Pendiente',blocked:false,next:'Escuchar/ver intervalo y documentar decisión editorial; no publicar automáticamente.'});
+  added++;
+ }
+ // Never change publishing status, selected video, or old audit records.
+ return {backup:out,video_name:target.name,added,already_present:report.findings.length-added,
+ caution:'Copia nueva del Centro, no importada ni aprobada automáticamente. Verifica el JSON antes de sustituir cualquier sesión.'};
+}
+const API={parseSubtitles,validateRestoredSubtitles,compareScript,seo,rubric,centroBackup,RUBRIC};
+if(typeof module!=='undefined'&&module.exports)module.exports=API;
+root.AURAEditorial=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script><script>
+/* AURA v0.3 editorial UI, fully local, only DOM textContent for user data. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const MAX_TXT=1024*1024,MAX_CENTRO=12*1024*1024;
+const R=AURAEditorial;
+let subtitle=null,comparison=null,seoResult=null,rubricResult=null;
+const session=()=>{const s=window.AURAGetSession();if(!s.report)throw new Error('Primero importa un informe técnico AURA.');return s;};
+const notice=(s,kind='info')=>{const n=$('notice');n.textContent=s;n.dataset.kind=kind;};
+const txt=(id,s)=>{$(id).textContent=s;};
+const clean=id=>{$(id).replaceChildren();};
+const one=(tag,s)=>{const e=document.createElement(tag);e.textContent=String(s);return e;};
+function saveFile(name,data){const blob=new Blob([data],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);notice('Descarga iniciada; comprueba el archivo en Android/Descargas.');}
+async function readFile(f,max){if(!f||f.size>max)throw new Error('Archivo demasiado grande o no seleccionado.');return await f.text();}
+function alertError(e){notice(e.message||String(e),'error');}
+$('subtitleFile').addEventListener('change',async e=>{
+ try{const s=session(),f=e.target.files[0];const content=await readFile(f,MAX_TXT);subtitle=R.parseSubtitles(content,f.name,s.report.duration_s);comparison=null;
+  txt('subtitleInfo',subtitle.format+' · '+(subtitle.timed?subtitle.cues.length+' fragmentos temporales':'sin marcas de tiempo')+' · '+AURAEditorial.rubric({}).items.length+' criterios editoriales disponibles. '+subtitle.warnings.join(' '));
+  txt('comparisonInfo','Transcripción importada. Pulsa Comparar con guion.');clean('diffs');notice('Subtítulos importados localmente. No se utilizó reconocimiento automático de voz.','ok');
+ }catch(ex){subtitle=null;alertError(ex)}finally{e.target.value='';}
+});
+$('compareScript').addEventListener('click',()=>{try{session();if(!subtitle)throw Error('Importa SRT, VTT o TXT primero.');
+ comparison=R.compareScript($('scriptText').value,subtitle);
+ const c=comparison;txt('comparisonInfo',c.script_words+' palabras en guion · '+c.transcript_words+' en transcripción · '+c.script_unmatched+' omitidas o distintas · '+c.transcript_extra+' adicionales o distintas. '+c.warning);
+ const box=$('diffs');box.replaceChildren();
+ for(const [title,items] of [['En guion, no coinciden',c.missing_examples],['En subtítulos, no coinciden',c.extra_examples]]){
+  const section=one('section','');section.append(one('h3',title));if(!items.length)section.append(one('p','Sin muestras para este grupo.'));
+  for(const q of items){const p=one('p','Token '+q.position_token+': '+q.example+(q.start_s==null?'':' · subtítulo original desde '+q.start_s.toFixed(2)+' s'));section.append(p);}
+  box.append(section);
+ }
+ notice('Comparación textual completada. Puede haber falsos positivos; escucha y confirma manualmente.','ok');
+ }catch(e){alertError(e)}});
+$('seoValidate').addEventListener('click',()=>{try{const s=session();seoResult=R.seo({title:$('seoTitle').value,description:$('seoDescription').value,keyword:$('seoKeyword').value,chapters:$('chapters').value},s.report.duration_s);
+ const out=$('seoAnalysis');out.replaceChildren();out.append(one('p','Título: '+seoResult.title_chars+'/100 · Descripción: '+seoResult.description_chars+'/5000 caracteres.'));
+ for(const q of seoResult.issues)out.append(one('p',(q.type==='block'?'Bloqueo formal':q.type==='review'?'Revisión':'Comprobación')+': '+q.rule));
+ out.append(one('p','Capítulos: '+seoResult.chapters.reason));out.append(one('p','No se predice CTR, retención, ranking o ingresos.'));
+ notice('Reglas formales SEO revisadas; la adecuación comercial requiere criterio editorial.','ok');
+ }catch(e){alertError(e)}});
+function renderRubric(){const b=$('rubricItems');b.replaceChildren();for(const [key,label] of R.RUBRIC){const block=one('div','');block.className='rubricItem';block.append(one('h3',label));
+ const l=one('label','Estado de revisión');l.htmlFor='rubric_'+key;const select=one('select','');select.id=l.htmlFor;select.dataset.rubricState=key;
+ for(const [v,t] of [['pending','Pendiente'],['verified','Verificado manualmente'],['problem','Problema identificado']]){const opt=one('option',t);opt.value=v;select.append(opt);}
+ const evidenceLabel=one('label','Evidencia, fuente o marca temporal');evidenceLabel.htmlFor='evidence_'+key;
+ const input=one('textarea','');input.id=evidenceLabel.htmlFor;input.dataset.rubricEvidence=key;input.rows=2;input.maxLength=2000;input.placeholder='Referencia verificable; no se aprueba automáticamente';
+ block.append(l,select,evidenceLabel,input);b.append(block);
+ }}
+renderRubric();
+function rubricSnapshot(){const raw={};for(const [key]of R.RUBRIC){raw[key]={state:$('rubric_'+key).value,evidence:$('evidence_'+key).value};}return R.rubric(raw);}
+$('rubricCheck').addEventListener('click',()=>{try{session();rubricResult=rubricSnapshot();txt('rubricInfo',rubricResult.pending+' pendientes · '+rubricResult.problems+' problemas. NO se genera aprobación de publicación.');notice('Rúbrica guardada en memoria de esta sesión; exporta dossier para conservarla.','ok');}catch(e){alertError(e)}});
+$('exportDossier').addEventListener('click',()=>{try{const s=session();const r=rubricSnapshot();const data={schema:'aura.dossier/1',exported_at:new Date().toISOString(),source_sha256:s.report.sha256,source_name:s.report.name,
+ report_summary:s.report,technical_status:s.report.technical_status,video_hash_verified_in_session:s.verifiedVideo,
+ decisions:s.decisions,transcription:subtitle,script:$('scriptText').value,
+ comparison,seo_input:{title:$('seoTitle').value,description:$('seoDescription').value,keyword:$('seoKeyword').value,chapters:$('chapters').value},seoResult,
+ narrative:r,editorial_approved:false,rights_verified:false,notes:'Dossier de trabajo. No contiene el video ni concede derechos. Las decisiones requieren evaluación humana.'};
+ saveFile('AURA_dossier_'+s.report.sha256.slice(0,12)+'.json',JSON.stringify(data,null,2));
+ }catch(e){alertError(e)}});
+$('restoreDossier').addEventListener('change',async e=>{try{const s=session();const doc=JSON.parse(await readFile(e.target.files[0],MAX_CENTRO));
+ if(!doc||doc.schema!=='aura.dossier/1'||doc.source_sha256!==s.report.sha256)throw Error('Dossier incompatible o asociado a otro video.');
+ if(typeof doc.script!=='string'||doc.script.length>100000)throw Error('Guion de respaldo inválido.');
+ if(!doc.seo_input||typeof doc.seo_input.title!=='string')throw Error('Metadatos no reconocidos.');
+ if(doc.decisions)AURACore.validateDecisions({schema:'aura.review/1',source_sha256:s.report.sha256,decisions:doc.decisions},s.report);
+ // Atomic validation first, no hidden replacement of the previous localStorage record.
+ const tr=doc.transcription?R.validateRestoredSubtitles(doc.transcription,s.report.duration_s):null;
+ const raw=Object.fromEntries(R.RUBRIC.map(([key])=>[key,(doc.narrative?.items||[]).find(x=>x.key===key)||{}]));R.rubric(raw);
+ $('scriptText').value=doc.script;$('seoTitle').value=doc.seo_input.title.slice(0,500);$('seoDescription').value=String(doc.seo_input.description||'').slice(0,12000);
+ $('seoKeyword').value=String(doc.seo_input.keyword||'').slice(0,180);$('chapters').value=String(doc.seo_input.chapters||'').slice(0,10000);
+ subtitle=tr||null;comparison=null;seoResult=null;
+ for(const [key]of R.RUBRIC){const x=raw[key];$('rubric_'+key).value=x.state||'pending';$('evidence_'+key).value=x.evidence||'';}
+ txt('subtitleInfo',subtitle?subtitle.format+' · restaurado del dossier':'Sin subtítulos restaurados');txt('comparisonInfo','Compara de nuevo para actualizar diferencias.');
+ notice('Dossier validado y restaurado en memoria. No se sobrescribieron decisiones persistentes; recupera esas decisiones mediante su archivo específico.','ok');
+ }catch(ex){alertError(ex)}finally{e.target.value='';}});
+$('centroImport').addEventListener('change',async e=>{try{const s=session();const center=JSON.parse(await readFile(e.target.files[0],MAX_CENTRO));
+ const patch=R.centroBackup(center,s.report,s.decisions,s.verifiedVideo);
+ saveFile('Centro_DDB_COPIA_con_AURA_'+s.report.sha256.slice(0,12)+'.json',JSON.stringify(patch.backup,null,2));
+ txt('centroInfo',patch.added+' candidatos añadidos a la copia de la ficha «'+patch.video_name+'»; '+patch.already_present+' existentes sin duplicar. No se alteró la sesión original del Centro.');
+ notice('Copia del Centro preparada. Examina el JSON y realiza la importación manual sólo después de respaldar la sesión anterior.','ok');
+ }catch(ex){alertError(ex)}finally{e.target.value='';}});
+})();
+
+</script></body></html>
