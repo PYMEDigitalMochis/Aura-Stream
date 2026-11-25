@@ -5,13 +5,13 @@
   "source_preserved": true,
   "android_apk_built": false,
   "android_physical_verified": false,
-  "file_count_excluding_manifest": 73,
+  "file_count_excluding_manifest": 75,
   "qa_scripts_passed": 18,
   "files": [
     {
       "path": ".github/workflows/android-debug-manual.yml",
-      "bytes": 2174,
-      "sha256": "212b1cc735dce9e1d7f768f0b8305dd1fdf68a398c3c07d4b9a02cf2a9cbc820"
+      "bytes": 2225,
+      "sha256": "d259bf6e10023b26ca818becae286e1e7fc178af4f9e1426b6938d6d812bf339"
     },
     {
       "path": ".gitignore",
@@ -85,8 +85,8 @@
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/AudioSignalDetector.java",
-      "bytes": 5511,
-      "sha256": "9f261627a0bd854ee2f453a3b9b033accc3c570e9fdfc8f826103a109e9f14c0"
+      "bytes": 5659,
+      "sha256": "c40103229bcd9c8746e51d90f72ed4e9c871dda6e47506e095a5604ead6090d0"
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/CodecAuditResult.java",
@@ -214,6 +214,16 @@
       "sha256": "b0c13b4923237128066dd6220b4ee0f8990480d2a3d71b584eadf8d760b2e9c2"
     },
     {
+      "path": "tests/TestBoundary.java",
+      "bytes": 654,
+      "sha256": "00d771d29b38956bb75405fd89fc1d83cd81ce9ae12841a7a22e9498d0348b9e"
+    },
+    {
+      "path": "tests/TestBoundaryExtended.java",
+      "bytes": 843,
+      "sha256": "0c7f7c33ea2ff3fe693e92bf76964bb492c95d9d62f273d7170a4092fd15b5cd"
+    },
+    {
       "path": "tests/TestCodecAuditContract.java",
       "bytes": 1152,
       "sha256": "f77c006cb7b643c24f7526973c8c4cf30e9131b2d626a8be02495527744971dc"
@@ -280,8 +290,8 @@
     },
     {
       "path": "tests/check_github_manual_workflow.py",
-      "bytes": 1202,
-      "sha256": "bbb9f23bbac1b7ba429931bafb849e9f874e85eda05591d82b1bad797ffb13ac"
+      "bytes": 1271,
+      "sha256": "7949e9deda602ede5337a5c5eb1e6ec7de004784dc8089e35433ee5e2a65c1b1"
     },
     {
       "path": "tests/check_native_wiring.py",
@@ -300,8 +310,8 @@
     },
     {
       "path": "tests/check_pcm_property.py",
-      "bytes": 590,
-      "sha256": "65fa3a4ca49038a3e056e99a6dabc3ec16b193d95e0e6e06b77940a27d0cbd51"
+      "bytes": 916,
+      "sha256": "4e55ccae5330417fee2e37832c8dbdc1d21ccb6e98a46cd3a9cce872b9921c28"
     },
     {
       "path": "tests/check_prephysical_gates.py",
