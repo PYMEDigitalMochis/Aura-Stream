@@ -1,5 +1,9 @@
-name: AURA public PR Android verification
+name: AURA public Android verification
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/aura-public-pr-android.yml'
   pull_request:
     branches: [main]
     types: [edited, synchronize, reopened, ready_for_review]
@@ -10,14 +14,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   portable-qa:
-    if: github.event.pull_request.number == 1 && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' || (github.event.pull_request.number == 1 && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Check out exact AURA candidate commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'push' && '76d527064cb5a61f5420a991ec0508da9eb8992d' || github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
@@ -44,7 +48,7 @@ jobs:
       - name: Check out same AURA candidate commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'push' && '76d527064cb5a61f5420a991ec0508da9eb8992d' || github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
