@@ -1,6 +1,8 @@
-name: AURA Android debug - manual, private, gated
+name: AURA Android debug - public QA, gated
 on:
   workflow_dispatch:
+  push:
+    branches: ["qa/aura-silence-600ms-20261124"]
 permissions:
   contents: read
 concurrency:
