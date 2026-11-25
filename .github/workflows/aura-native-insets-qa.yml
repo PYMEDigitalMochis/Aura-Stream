@@ -33,7 +33,7 @@ jobs:
         with:
           run-id: 45580863687
           github-token: ${{ github.token }}
-          name: AURA-native-insets-diagnostic-API35-evidence
+          name: AURA-native-insets-API35-evidence
           path: previous
       - name: Reuse and verify exact prior APK, no redundant compile
         run: |
