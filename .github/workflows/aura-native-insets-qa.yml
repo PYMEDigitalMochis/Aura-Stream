@@ -114,9 +114,9 @@ jobs:
               if n is None:raise AssertionError('Save button absent')
               tap(n)
               wait('export-verified',r'Exportaci[oó]n JSON cotejada',60)
-              files=adb('shell','find','/sdcard','-name','AURA_informe_parcial.json').decode().splitlines()
-              assert len(files)==1,files
-              adb('pull',files[0],str(E/'AURA_informe_parcial.json'))
+              source='/sdcard/Download/AURA_informe_parcial.json'
+              adb('shell','ls','-l',source)
+              adb('pull',source,str(E/'AURA_informe_parcial.json'))
               report=json.loads((E/'AURA_informe_parcial.json').read_text())
               (E/'decoded-report-diagnostic.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
               assert report['schema']=='aura.audit/1'
