@@ -1,0 +1,170 @@
+name: AURA Android audio-insets full synthetic media QA
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/aura-native-insets-qa.yml"]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: aura-native-media-qa
+  cancel-in-progress: false
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 38
+    steps:
+      - name: Checkout candidate by exact commit (no PR merge)
+        uses: actions/checkout@v4
+        with:
+          ref: 4ae25841598184050009f36a4f64ccb390fb02b9
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install portable test prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends chromium ffmpeg
+          python -m pip install --disable-pip-version-check playwright==1.57.0 beautifulsoup4==4.14.3
+      - name: Run 19 portable regressions on isolated source
+        run: sh tools/run_qa_isolated.sh
+      - uses: android-actions/setup-android@v4
+      - name: Install official Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Compile debug APK and lint
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - name: Verify APK signature, assets, rights and digest
+        run: |
+          python3 tools/check_apk_gate.py --apk app/build/outputs/apk/debug/app-debug.apk --sdk "$ANDROID_HOME" --source . --output AURA_APK_GATE.json
+          mkdir -p evidence
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > evidence/apk.sha256
+      - name: Verify exact APK and create synthetic input
+        run: |
+          set -eu
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s evidence/apk.sha256
+          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          mkdir -p evidence
+          ffmpeg -hide_banner -loglevel error -f lavfi -i 'testsrc2=size=320x240:rate=15:duration=6' -f lavfi -i 'aevalsrc=if(between(t\,2\,4)\,0\,0.2*sin(2*PI*440*t)):s=44100:d=6' -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest -movflags +faststart evidence/AURA_QA_INPUT.mp4
+          sha256sum evidence/AURA_QA_INPUT.mp4 > evidence/input.sha256
+          ffprobe -v error -show_format -show_streams -of json evidence/AURA_QA_INPUT.mp4 > evidence/input-probe.json
+          cat > qa_media.py <<'PY'
+          import hashlib, json, pathlib, re, subprocess, time, xml.etree.ElementTree as ET
+          E=pathlib.Path('evidence')
+          def adb(*a):
+              return subprocess.check_output(['adb',*a], timeout=40)
+          def snap(label):
+              adb('shell','uiautomator','dump','/sdcard/qa.xml')
+              xml=adb('shell','cat','/sdcard/qa.xml')
+              (E/(label+'.xml')).write_bytes(xml)
+              (E/(label+'.png')).write_bytes(adb('exec-out','screencap','-p'))
+              return ET.fromstring(xml)
+          def text(n):
+              return (n.get('text','')+' '+n.get('content-desc','')).strip()
+          def tap(n):
+              a=list(map(int,re.findall(r'\d+',n.attrib['bounds'])))
+              adb('shell','input','tap',str((a[0]+a[2])//2),str((a[1]+a[3])//2))
+              time.sleep(2)
+          def find(root,pattern):
+              candidates=[n for n in root.iter('node') if re.search(pattern,text(n),re.I)]
+              return next((n for n in candidates if n.attrib.get('text','') and re.search(pattern,n.attrib['text'],re.I)),candidates[0] if candidates else None)
+          def wait(label,pattern,seconds=90):
+              end=time.monotonic()+seconds
+              while time.monotonic()<end:
+                  try:
+                      root=snap(label)
+                      n=find(root,pattern)
+                      if n is not None:return n
+                  except (subprocess.SubprocessError,ET.ParseError): pass
+                  time.sleep(2)
+              raise AssertionError('UI not found: '+pattern)
+          def open_downloads(root):
+              n=find(root,r'^Downloads$|^Descargas$')
+              if n is not None: tap(n);return
+              menu=find(root,r'Show roots|Open navigation drawer|Mostrar ra[ií]ces|Abrir men[uú]')
+              if menu is None:raise AssertionError('Downloads navigation unavailable')
+              tap(menu)
+              tap(wait('drawer',r'^Downloads$|^Descargas$',30))
+          try:
+              adb('install','-r','app/build/outputs/apk/debug/app-debug.apk')
+              adb('shell','mkdir','-p','/sdcard/Download')
+              adb('push',str(E/'AURA_QA_INPUT.mp4'),'/sdcard/Download/AURA_QA_INPUT.mp4')
+              adb('shell','am','broadcast','-a','android.intent.action.MEDIA_SCANNER_SCAN_FILE','-d','file:///sdcard/Download/AURA_QA_INPUT.mp4')
+              adb('logcat','-c')
+              adb('shell','am','start','-W','-n','mx.detrasdelboton.aura/.MainActivity')
+              tap(wait('home','Seleccionar video',60))
+              root=snap('picker')
+              n=find(root,r'AURA_QA_INPUT\.mp4')
+              if n is None:
+                  open_downloads(root)
+                  n=wait('downloads',r'AURA_QA_INPUT\.mp4',45)
+              tap(n)
+              n=wait('analysis',r'Informe t[eé]cnico candidato|Nuevo archivo rechazado',150)
+              assert 'Nuevo archivo rechazado' not in text(n),text(n)
+              observed=text(n)
+              expected=hashlib.sha256((E/'AURA_QA_INPUT.mp4').read_bytes()).hexdigest()
+              assert expected in observed,observed
+              assert re.search(r'C[oó]dec: completed.*Audio PCM: completed',observed,re.S),observed
+              tap(wait('export-button',r'Guardar informe t[eé]cnico parcial',30))
+              root=snap('save-picker')
+              n=find(root,r'^Save$|^Guardar$')
+              if n is None:raise AssertionError('Save button absent')
+              tap(n)
+              wait('export-verified',r'Exportaci[oó]n JSON cotejada',60)
+              files=adb('shell','find','/sdcard','-name','AURA_informe_parcial.json').decode().splitlines()
+              assert len(files)==1,files
+              adb('pull',files[0],str(E/'AURA_informe_parcial.json'))
+              report=json.loads((E/'AURA_informe_parcial.json').read_text())
+              assert report['schema']=='aura.audit/1'
+              assert report['source']['sha256']==expected and report['source_unchanged'] is True
+              assert report['source']['bytes']==(E/'AURA_QA_INPUT.mp4').stat().st_size
+              assert abs(report['source']['duration_s']-6)<0.3
+              assert report['editorial_status']=='PENDING_HUMAN_REVIEW'
+              assert report['technical_status']=='completed',report['checks']
+              assert all(report['checks'][k]['status']=='completed' for k in ('decode','black','freeze','silence','loudness')),report['checks']
+              assert any(f['kind']=='silence' and f['start_s']<3 and f['end_s']>3.5 for f in report['findings']),report['findings']
+              assert all(t['decoded_outputs']>0 for t in report['metrics']['decoder_tracks'])
+              assert len(report['metrics']['audio_tracks'])==1
+              assert hashlib.sha256(adb('exec-out','cat','/sdcard/Download/AURA_QA_INPUT.mp4')).hexdigest()==expected
+              (E/'result.json').write_text(json.dumps({'status':'PASS','apk_sha256':hashlib.sha256(pathlib.Path('app/build/outputs/apk/debug/app-debug.apk').read_bytes()).hexdigest(),'input_sha256':expected,'scope':'synthetic six-second MP4; SAF + actual Android decoder + export readback; not physical QA'},indent=2))
+          finally:
+              (E/'logcat.txt').write_bytes(adb('logcat','-d','-s','AndroidRuntime:E'))
+          PY
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Native SAF and decoder test API35
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: Nexus 5
+          ram-size: 2048M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: python3 qa_media.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: AURA-native-insets-API35-evidence
+          path: |
+            evidence/
+            app/build/outputs/apk/debug/app-debug.apk
+            AURA_APK_GATE.json
+            app/build/reports/lint-results-debug.html
+          retention-days: 3
+          if-no-files-found: error
