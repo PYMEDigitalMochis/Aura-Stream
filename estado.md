@@ -31,3 +31,11 @@
 4. Una sesión física final AND-01…AND-15 PASS.
 5. Dictamen editorial delimitado con insumos reales, y sin llamar `completado` a detector omitido.
 6. Respaldo remoto cotejado por SHA, documentación sincronizada; video original no modificado.
+
+## CONTINUIDAD CI PUBLICA - 2026-11-24
+- Repositorio GitHub PYMEDigitalMochis/Aura-Stream confirmado PUBLICO por el conector.
+- Rama de desarrollo: work/aura-v0.1.8-android-qa. main no contiene la app. PR #1 sigue DRAFT.
+- GitHub Actions usa runner estandar ubuntu-latest (gratuito en repositorios publicos).
+- Se agrego flujo PR limitado al PR #1, permiso contents:read, checkout por SHA, sin secretos ni despliegue.
+- Esta nota solo cambia estado documental y permite comprobar CI; no implica compilacion, APK ni pruebas Android superadas.
+- El resultado de CI es PENDIENTE hasta obtener logs y artefactos comprobados.
