@@ -42,8 +42,8 @@ jobs:
             adb logcat -c
             adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
             sleep 8
-            for attempt in 1 2 3; do adb shell uiautomator dump /sdcard/aura.xml || true; adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml || true; if grep -Fq 'Seleccionar video' aura-emulator-portrait.xml; then break; fi; adb shell input keyevent KEYCODE_BACK || true; adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity || true; sleep 5; done
-            grep -Fq 'Seleccionar video' aura-emulator-portrait.xml
+            for attempt in 1 2 3; do adb shell uiautomator dump /sdcard/aura.xml || true; adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml || true; if grep -Fq 'SELECCIONAR VIDEO' aura-emulator-portrait.xml; then break; fi; adb shell input keyevent KEYCODE_BACK || true; adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity || true; sleep 5; done
+            grep -Fq 'SELECCIONAR VIDEO' aura-emulator-portrait.xml
             grep -Fq 'AURA' aura-emulator-portrait.xml
             adb exec-out screencap -p > aura-emulator-portrait.png
             adb shell settings put system accelerometer_rotation 0
