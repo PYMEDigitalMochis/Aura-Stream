@@ -1,0 +1,4 @@
+AURA ANDROID v0.1.4 · QA LINUX, 2026-11-22
+Fuente v0.1.3 preservada; dos detectores visuales HEURÍSTICOS por muestreo.
+PRUEBAS: 9 scripts comprobables (ver tools/run_qa_isolated.sh), 23 assertions frames sintéticos, 2 candidatos MP4 sintético decodificado FFmpeg.
+ESTADO ANDROID: SIN SDK, SIN APK, SIN INSTALACIÓN REAL; NO se acreditan tests físicos.

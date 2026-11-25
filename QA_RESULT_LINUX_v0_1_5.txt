@@ -1,0 +1,38 @@
+AURA v0.1.5 Linux pre-physical static/unit/browser
+2026-11-22T23:17:13Z
+=== check_contract.py ===
+OK: viewer source matches v0.3.2, sha256=77d0e5d1c75303ca8dcfbbb65b0017887ae6d3a7d94d211139e9ecff289cd3fa
+OK: manifest has no file or network permissions
+OK: javac portable core compile + 15 adversarial rejects
+OK: JS AURA v0.3.2 accepted Android partial JSON
+OK: JSON schema, metadata, 5 unexecuted detectors, review pending
+RESULT: portable checks pass; Android classes/APK/device NOT compiled or tested
+=== check_android_stubs.py ===
+OK: all 5 Java source files compile with minimal API signature stubs; NOT Android SDK/Gradle/APK
+=== check_export.py ===
+OK: export bytes correct, extra, truncated, tampered, zero-progress: 5/5
+=== check_ui.py ===
+OK: Chromium 360px adapter injects accepted JSON, disables unverified exports, no network; NOT Android physical QA
+=== check_adversarial_ui.py ===
+OK: 6 unsafe controls disabled; decisions and rubric read-only after import; no page errors or external requests (Chromium only)
+=== check_webview_lifecycle.py ===
+PASS: WebView detached before destruction, stale viewer guarded; windows/location denied
+=== check_visual_candidates.py ===
+PASS: 23 adversarial assertions; visual detection is HEURISTIC ONLY / no Android SDK validation
+PASS JSON v0.3.2 review contract
+PASS: synthetic visual frames and Android contract; no Android APK or physical decoder evaluated
+=== check_decoded_video.py ===
+black 3.0-7.0
+freeze 7.0-13.0
+PASS: FFmpeg decoded real synthetic MP4; detector found sustained black & frozen candidates. Not Android decoder QA.
+
+PASS: 2 video candidates from actual FFmpeg-decoded frames; NOT Android decoder
+=== check_native_wiring.py ===
+PASS static wiring: decode sample, integrity recheck, old report preserved after rejected new source
+=== check_prephysical_gates.py ===
+PASS 6 deadline/cancellation assertions
+PASS visual status and UI cannot misrepresent a skipped detector
+=== check_apk_gate_policy.py ===
+PASS 5/5 simulated gate scenarios: accepted stub, permission injection, asset tampering, missing asset, signature failure. NO real APK was signed.
+=== check_security_static.py ===
+PASS 14 static defense assertions + external-resource and permission inventory (not Android runtime security)
