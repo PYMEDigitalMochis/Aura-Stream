@@ -1,0 +1,74 @@
+name: AURA public PR Android verification
+on:
+  pull_request:
+    branches: [main]
+    types: [edited, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+concurrency:
+  group: aura-public-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  portable-qa:
+    if: github.event.pull_request.number == 1 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact AURA candidate commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install portable test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends chromium ffmpeg
+          python -m pip install --disable-pip-version-check playwright==1.57.0 beautifulsoup4==4.14.3
+      - name: Execute all 18 portable suites and SHA manifest
+        run: sh tools/run_qa_isolated.sh
+  android-build:
+    needs: portable-qa
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out same AURA candidate commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Build Android debug APK and run lint
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - name: Audit real APK signature, permissions, embedded assets and hash
+        run: |
+          python3 tools/check_apk_gate.py --apk app/build/outputs/apk/debug/app-debug.apk --sdk "$ANDROID_HOME" --source . --output AURA_APK_GATE.json
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > AURA-APK-DEBUG.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AURA-v0.1.8-debug-Android-built-NO-physical-QA
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            AURA-APK-DEBUG.sha256
+            AURA_APK_GATE.json
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: error
+          retention-days: 3
