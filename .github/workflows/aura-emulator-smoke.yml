@@ -38,21 +38,11 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
-            set -eu
             adb install -r downloaded/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
             sleep 8
-            for attempt in 1 2 3; do
-              adb shell uiautomator dump /sdcard/aura.xml || true
-              adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml || true
-              if grep -Fq 'Seleccionar video' aura-emulator-portrait.xml; then
-                break
-              fi
-              adb shell input keyevent KEYCODE_BACK || true
-              adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
-              sleep 5
-            done
+            for attempt in 1 2 3; do adb shell uiautomator dump /sdcard/aura.xml || true; adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml || true; if grep -Fq 'Seleccionar video' aura-emulator-portrait.xml; then break; fi; adb shell input keyevent KEYCODE_BACK || true; adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity || true; sleep 5; done
             grep -Fq 'Seleccionar video' aura-emulator-portrait.xml
             grep -Fq 'AURA' aura-emulator-portrait.xml
             adb exec-out screencap -p > aura-emulator-portrait.png
@@ -65,10 +55,7 @@ jobs:
             adb exec-out screencap -p > aura-emulator-rotated.png
             adb shell input keyevent KEYCODE_BACK
             adb logcat -d -s AndroidRuntime:E > aura-emulator-runtime.log
-            if grep -F 'FATAL EXCEPTION' aura-emulator-runtime.log; then
-              echo 'FAIL AndroidRuntime crash'
-              exit 1
-            fi
+            if grep -F 'FATAL EXCEPTION' aura-emulator-runtime.log; then echo 'FAIL AndroidRuntime crash'; exit 1; fi
             echo 'PASS APK install, activity launch, portrait UI, rotation UI, no AndroidRuntime FATAL EXCEPTION'
       - name: Save read-only emulator evidence
         if: always()
