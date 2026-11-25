@@ -5,8 +5,8 @@
   "source_preserved": true,
   "android_apk_built": false,
   "android_physical_verified": false,
-  "file_count_excluding_manifest": 75,
-  "qa_scripts_passed": 18,
+  "file_count_excluding_manifest": 76,
+  "qa_scripts_passed": 19,
   "files": [
     {
       "path": ".github/workflows/android-debug-manual.yml",
@@ -17,41 +17,6 @@
       "path": ".gitignore",
       "bytes": 77,
       "sha256": "3e5e026e08221ae2443ca1e825274e1e7762a5a1c89c107cd13556fc76ea4258"
-    },
-    {
-      "path": "QA_RESULT_LINUX_v0_1_3.txt",
-      "bytes": 601,
-      "sha256": "6ae8515ca10399b19d4bceb711c118c8124c22926fcdd2bcb0497d93e68a6dd8"
-    },
-    {
-      "path": "QA_RESULT_LINUX_v0_1_4.txt",
-      "bytes": 357,
-      "sha256": "5a7e8d25486b7e82982eb30fbeebd35afd6425c644959e913178352d8f873e7f"
-    },
-    {
-      "path": "QA_RESULT_LINUX_v0_1_5.txt",
-      "bytes": 2264,
-      "sha256": "9f63f0362b907e9f5230fe744a0f61b2b3e0e49a52c7d57f38b2cacf93f6af93"
-    },
-    {
-      "path": "README.md",
-      "bytes": 2741,
-      "sha256": "4beed43e1ca6945178bb0eeecdc0f3293eafb6c95a5503e8b915a2352250d915"
-    },
-    {
-      "path": "README_0_1_6.md",
-      "bytes": 1070,
-      "sha256": "6df3c1b94a263a71b16d08e901dc066d12428d024d7a7261b23ddfe7b75b7aaf"
-    },
-    {
-      "path": "README_0_1_7.md",
-      "bytes": 1303,
-      "sha256": "0008b8f3aa609cc7546815d4a720f4a8f7787fac325a1df79c96ecd5c8c82a59"
-    },
-    {
-      "path": "README_0_1_8.md",
-      "bytes": 1305,
-      "sha256": "95bad1e384a2e6d29ee5213365e4baa3cb8078bca5a3aaf6a11ae467d04844a7"
     },
     {
       "path": "app/build.gradle",
@@ -95,8 +60,8 @@
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/MainActivity.java",
-      "bytes": 13367,
-      "sha256": "d342243666af98e6d6acd3e8fbd6abd662a7f1d90c86abf0c048f632ea224b6e"
+      "bytes": 13432,
+      "sha256": "efb8aac2e9a985dd6eb88eef84a832aab895a1d654ffbf823c048d55d90c35c1"
     },
     {
       "path": "app/src/main/java/mx/detrasdelboton/aura/MetadataProbe.java",
@@ -174,14 +139,49 @@
       "sha256": "fb298af7d84d0e20523e7172625a8d975a11efa043c573ca97f8997a0e84fb5f"
     },
     {
+      "path": "historico_QA_RESULT_LINUX_v0_1_2.txt",
+      "bytes": 642,
+      "sha256": "e1810a05bff081dbe49282014c9855d2bbb32a5dcfc39dc144637b579ff5c799"
+    },
+    {
       "path": "historico_QA_RESULT_LINUX.txt",
       "bytes": 895,
       "sha256": "0d2838604ab3137fe38a8405222918435968a63e6745ed189c735175f1edc5b6"
     },
     {
-      "path": "historico_QA_RESULT_LINUX_v0_1_2.txt",
-      "bytes": 642,
-      "sha256": "e1810a05bff081dbe49282014c9855d2bbb32a5dcfc39dc144637b579ff5c799"
+      "path": "QA_RESULT_LINUX_v0_1_3.txt",
+      "bytes": 601,
+      "sha256": "6ae8515ca10399b19d4bceb711c118c8124c22926fcdd2bcb0497d93e68a6dd8"
+    },
+    {
+      "path": "QA_RESULT_LINUX_v0_1_4.txt",
+      "bytes": 357,
+      "sha256": "5a7e8d25486b7e82982eb30fbeebd35afd6425c644959e913178352d8f873e7f"
+    },
+    {
+      "path": "QA_RESULT_LINUX_v0_1_5.txt",
+      "bytes": 2264,
+      "sha256": "9f63f0362b907e9f5230fe744a0f61b2b3e0e49a52c7d57f38b2cacf93f6af93"
+    },
+    {
+      "path": "README_0_1_6.md",
+      "bytes": 1070,
+      "sha256": "6df3c1b94a263a71b16d08e901dc066d12428d024d7a7261b23ddfe7b75b7aaf"
+    },
+    {
+      "path": "README_0_1_7.md",
+      "bytes": 1303,
+      "sha256": "0008b8f3aa609cc7546815d4a720f4a8f7787fac325a1df79c96ecd5c8c82a59"
+    },
+    {
+      "path": "README_0_1_8.md",
+      "bytes": 1305,
+      "sha256": "95bad1e384a2e6d29ee5213365e4baa3cb8078bca5a3aaf6a11ae467d04844a7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2741,
+      "sha256": "4beed43e1ca6945178bb0eeecdc0f3293eafb6c95a5503e8b915a2352250d915"
     },
     {
       "path": "settings.gradle",
@@ -189,79 +189,19 @@
       "sha256": "fa67f9cd388022ccc1ef92b44669245a8eb920e38f3985dd4fe92646b51d1fd5"
     },
     {
-      "path": "tests/TestAudioAdversarial.java",
-      "bytes": 4117,
-      "sha256": "0aa94885cb47e51b9cdc2a9c2ef18346b48d701ce77b209f3faffbff63722a18"
-    },
-    {
-      "path": "tests/TestAudioFixture.java",
-      "bytes": 1594,
-      "sha256": "986a2627482325d76428a10c82a06aa60fba03ae848723a23b7ddd6473b244e2"
-    },
-    {
-      "path": "tests/TestAudioProperty.java",
-      "bytes": 1910,
-      "sha256": "354ba54ac85b9c3e19801ba9d22e852889215342d612c22b3dfaf7b92c4c8c53"
-    },
-    {
-      "path": "tests/TestAudioSignalDetector.java",
-      "bytes": 2777,
-      "sha256": "8374610f7bb25855f2c5d29dac6021a719579a6be4a9544e42b759680fec8eed"
-    },
-    {
-      "path": "tests/TestAudioZeroBuffer.java",
-      "bytes": 1256,
-      "sha256": "b0c13b4923237128066dd6220b4ee0f8990480d2a3d71b584eadf8d760b2e9c2"
-    },
-    {
-      "path": "tests/TestBoundary.java",
-      "bytes": 654,
-      "sha256": "00d771d29b38956bb75405fd89fc1d83cd81ce9ae12841a7a22e9498d0348b9e"
-    },
-    {
-      "path": "tests/TestBoundaryExtended.java",
-      "bytes": 843,
-      "sha256": "0c7f7c33ea2ff3fe693e92bf76964bb492c95d9d62f273d7170a4092fd15b5cd"
-    },
-    {
-      "path": "tests/TestCodecAuditContract.java",
-      "bytes": 1152,
-      "sha256": "f77c006cb7b643c24f7526973c8c4cf30e9131b2d626a8be02495527744971dc"
-    },
-    {
-      "path": "tests/TestDecodedFrames.java",
-      "bytes": 1551,
-      "sha256": "36e6ae22dadebf33c6ccda4fb49c7caa8be4feeadbf3e2d485bc677b51b64000"
-    },
-    {
-      "path": "tests/TestExportVerification.java",
-      "bytes": 1361,
-      "sha256": "eaa2d4048d8308367ae1fa0b8f0fa2a2fa4171d2f8291da94095c3630749c511"
-    },
-    {
-      "path": "tests/TestReportContract.java",
-      "bytes": 2504,
-      "sha256": "9d5fe6c255439057ce393291631b32ca8c857ebbf5c3cc12ba0bc34f206c74c1"
-    },
-    {
-      "path": "tests/TestVideoFrames.java",
-      "bytes": 4368,
-      "sha256": "c1fe1da2740a4062099d0861f5ab60aa9269210855db20239798a96fa6367f53"
-    },
-    {
-      "path": "tests/TestVisualDeadline.java",
-      "bytes": 1661,
-      "sha256": "b8aa0371ac37712b7f98add1d7e270d1ab0c30798dd423fbdc847397181801f9"
-    },
-    {
       "path": "tests/check_adversarial_ui.py",
       "bytes": 2344,
       "sha256": "4436c953d251e32e1a9e9c0b4c1dcb59dc267da5fbabf0b339fd62036ff1aa52"
     },
     {
+      "path": "tests/check_android_insets.py",
+      "bytes": 599,
+      "sha256": "d5c84d0a7fb065d9efee8c400ffa5b1b4372b842bfa9b7344dd5c4cf48c7e619"
+    },
+    {
       "path": "tests/check_android_stubs.py",
-      "bytes": 12039,
-      "sha256": "ed935426656e7dfe30eae4b7f144d9ed33665316e48aaf8b03a893534252a860"
+      "bytes": 12089,
+      "sha256": "58e13bea5d0a8e989b67d68f5246afcc3cc338f6d1985da9afb2a2ff27d225dc"
     },
     {
       "path": "tests/check_apk_gate_policy.py",
@@ -344,14 +284,14 @@
       "sha256": "3e0dcd3f822d74d689110ef31f03ab97b06eb0d04545b02d00c14e1f431edb52"
     },
     {
-      "path": "tests/fixtures/MANIFIESTO.json",
-      "bytes": 215,
-      "sha256": "248b4b2f3fc25a47e6583f0b69bb0d7c1685c176168837d4bd2c0aad4f1707f3"
-    },
-    {
       "path": "tests/fixtures/fotogramas_rgb24_80x45_1fps.raw",
       "bytes": 162000,
       "sha256": "bf921e909b32960dd3fdd7461fadb1194953f7904542ba320289ff18fb337703"
+    },
+    {
+      "path": "tests/fixtures/MANIFIESTO.json",
+      "bytes": 215,
+      "sha256": "248b4b2f3fc25a47e6583f0b69bb0d7c1685c176168837d4bd2c0aad4f1707f3"
     },
     {
       "path": "tests/fixtures/sintetico_negro_congelado_15s.mp4",
@@ -362,6 +302,71 @@
       "path": "tests/reference_v032/aura_contract.js",
       "bytes": 5669,
       "sha256": "f2aa1086d69e84c1a74ccf2b1bbbb6a311479b5722d8eb9ea8be2225f5766828"
+    },
+    {
+      "path": "tests/TestAudioAdversarial.java",
+      "bytes": 4117,
+      "sha256": "0aa94885cb47e51b9cdc2a9c2ef18346b48d701ce77b209f3faffbff63722a18"
+    },
+    {
+      "path": "tests/TestAudioFixture.java",
+      "bytes": 1594,
+      "sha256": "986a2627482325d76428a10c82a06aa60fba03ae848723a23b7ddd6473b244e2"
+    },
+    {
+      "path": "tests/TestAudioProperty.java",
+      "bytes": 1910,
+      "sha256": "354ba54ac85b9c3e19801ba9d22e852889215342d612c22b3dfaf7b92c4c8c53"
+    },
+    {
+      "path": "tests/TestAudioSignalDetector.java",
+      "bytes": 2777,
+      "sha256": "8374610f7bb25855f2c5d29dac6021a719579a6be4a9544e42b759680fec8eed"
+    },
+    {
+      "path": "tests/TestAudioZeroBuffer.java",
+      "bytes": 1256,
+      "sha256": "b0c13b4923237128066dd6220b4ee0f8990480d2a3d71b584eadf8d760b2e9c2"
+    },
+    {
+      "path": "tests/TestBoundary.java",
+      "bytes": 654,
+      "sha256": "00d771d29b38956bb75405fd89fc1d83cd81ce9ae12841a7a22e9498d0348b9e"
+    },
+    {
+      "path": "tests/TestBoundaryExtended.java",
+      "bytes": 843,
+      "sha256": "0c7f7c33ea2ff3fe693e92bf76964bb492c95d9d62f273d7170a4092fd15b5cd"
+    },
+    {
+      "path": "tests/TestCodecAuditContract.java",
+      "bytes": 1152,
+      "sha256": "f77c006cb7b643c24f7526973c8c4cf30e9131b2d626a8be02495527744971dc"
+    },
+    {
+      "path": "tests/TestDecodedFrames.java",
+      "bytes": 1551,
+      "sha256": "36e6ae22dadebf33c6ccda4fb49c7caa8be4feeadbf3e2d485bc677b51b64000"
+    },
+    {
+      "path": "tests/TestExportVerification.java",
+      "bytes": 1361,
+      "sha256": "eaa2d4048d8308367ae1fa0b8f0fa2a2fa4171d2f8291da94095c3630749c511"
+    },
+    {
+      "path": "tests/TestReportContract.java",
+      "bytes": 2504,
+      "sha256": "9d5fe6c255439057ce393291631b32ca8c857ebbf5c3cc12ba0bc34f206c74c1"
+    },
+    {
+      "path": "tests/TestVideoFrames.java",
+      "bytes": 4368,
+      "sha256": "c1fe1da2740a4062099d0861f5ab60aa9269210855db20239798a96fa6367f53"
+    },
+    {
+      "path": "tests/TestVisualDeadline.java",
+      "bytes": 1661,
+      "sha256": "b8aa0371ac37712b7f98add1d7e270d1ab0c30798dd423fbdc847397181801f9"
     },
     {
       "path": "tools/check_apk_gate.py",
@@ -375,8 +380,8 @@
     },
     {
       "path": "tools/run_qa_isolated.sh",
-      "bytes": 821,
-      "sha256": "5cea2bf3ffa69d0c18ce7c63d98ca45d94b7e59cdfdf73296c3babd2ab2cbf9a"
+      "bytes": 845,
+      "sha256": "5f6c81d77b3d9f79f392ea57e32ba367f6743d00adfe2a6f9912b30cff6c786a"
     },
     {
       "path": "tools/verify_manifest.py",

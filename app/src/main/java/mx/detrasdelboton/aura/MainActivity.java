@@ -74,7 +74,7 @@ public final class MainActivity extends Activity {
     }
     private void showHome(){
         releaseViewer();
-        ScrollView scroll=new ScrollView(this);
+        ScrollView scroll=new ScrollView(this);scroll.setFitsSystemWindows(true);
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(30,36,30,30);box.setBackgroundColor(Color.rgb(15,23,35));
         scroll.addView(box);setContentView(scroll);
         TextView title=new TextView(this);title.setText("AURA · Android POC v0.1.8");title.setTextSize(24);title.setTextColor(Color.WHITE);box.addView(title);
@@ -165,7 +165,7 @@ public final class MainActivity extends Activity {
     private void showViewer(){
         releaseViewer();
         WebViewAssetLoader loader=new WebViewAssetLoader.Builder().addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
-        web=new WebView(this);setContentView(web);
+        web=new WebView(this);web.setFitsSystemWindows(true);setContentView(web);
         WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);
         s.setJavaScriptCanOpenWindowsAutomatically(false);
         s.setSupportMultipleWindows(false);s.setGeolocationEnabled(false);

@@ -43,7 +43,7 @@ public void getPixels(int[] a,int off,int stride,int x,int y,int w,int h){}publi
 'android/graphics/Color.java': '''package android.graphics;
 public class Color {public static final int WHITE=0;public static int rgb(int a,int b,int c){return 0;}}''',
 'android/view/View.java': '''package android.view;
-public class View {public Object getParent(){return null;}public interface OnClickListener {void onClick(View v);} }''',
+public class View {public void setFitsSystemWindows(boolean value){} public Object getParent(){return null;}public interface OnClickListener {void onClick(View v);} }''',
 'android/view/ViewGroup.java': '''package android.view; public class ViewGroup extends View {public void removeView(View v){} }''',
 'android/widget/TextView.java': '''package android.widget;
 import android.content.*;import android.view.*;
