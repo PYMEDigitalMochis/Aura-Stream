@@ -1,4 +1,4 @@
-name: AURA native media diagnostic — pinned signed APK
+name: AURA native PCM diagnostic recompile — exact Android error
 on:
   push:
     branches: [main]
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout candidate by exact commit (no PR merge)
         uses: actions/checkout@v4
         with:
-          ref: 4ae25841598184050009f36a4f64ccb390fb02b9
+          ref: aabaacef711f8dc75484ed9552504261569393ea
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
@@ -29,17 +29,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 45580863687
-          github-token: ${{ github.token }}
-          name: AURA-native-insets-API35-evidence
-          path: previous
-      - name: Reuse and verify exact prior APK, no redundant compile
+      - name: Install portable test prerequisites
         run: |
-          mkdir -p app/build/outputs/apk/debug evidence
-          cp previous/app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/app-debug.apk
-          printf '7b7718b38b3c63a9d2a143ea1b91dc0c03e99f4b112dc8c1fc2e9e3e1458b7df  app/build/outputs/apk/debug/app-debug.apk\n' | sha256sum -c -
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends chromium ffmpeg
+          python -m pip install --disable-pip-version-check playwright==1.57.0 beautifulsoup4==4.14.3
+      - name: Run 19 portable regressions on isolated source
+        run: sh tools/run_qa_isolated.sh
+      - uses: android-actions/setup-android@v4
+      - name: Install official Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Compile debug APK and lint
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - name: Verify APK signature, assets, rights and digest
+        run: |
+          python3 tools/check_apk_gate.py --apk app/build/outputs/apk/debug/app-debug.apk --sdk "$ANDROID_HOME" --source . --output AURA_APK_GATE.json
+          mkdir -p evidence
           sha256sum app/build/outputs/apk/debug/app-debug.apk > evidence/apk.sha256
       - name: Verify exact APK and create synthetic input
         run: |
