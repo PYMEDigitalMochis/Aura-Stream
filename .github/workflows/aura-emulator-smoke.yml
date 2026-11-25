@@ -1,0 +1,74 @@
+name: AURA v0.1.8 emulator smoke - pinned verified APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/aura-emulator-smoke.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  emulator-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download the exact successful APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 45555707798
+          github-token: ${{ github.token }}
+          name: AURA-v0.1.8-debug-Android-built-NO-physical-QA
+          path: downloaded
+      - name: Check pinned APK SHA-256 before installation
+        run: |
+          printf 'f09683c36516d765c38120b0f63f7c5b4b7b17a173b76ae455be841845c8b33d  downloaded/app/build/outputs/apk/debug/app-debug.apk\n' | sha256sum -c -
+      - name: Enable Android emulator KVM acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and smoke-test in Android 35 emulator (no physical device)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set -eu
+            adb install -r downloaded/app/build/outputs/apk/debug/app-debug.apk
+            adb logcat -c
+            adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
+            sleep 5
+            adb shell uiautomator dump /sdcard/aura.xml
+            adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml
+            grep -Fq 'Seleccionar video' aura-emulator-portrait.xml
+            grep -Fq 'AURA' aura-emulator-portrait.xml
+            adb exec-out screencap -p > aura-emulator-portrait.png
+            adb shell settings put system accelerometer_rotation 0
+            adb shell settings put system user_rotation 1
+            sleep 3
+            adb shell uiautomator dump /sdcard/aura-rotated.xml
+            adb shell cat /sdcard/aura-rotated.xml > aura-emulator-rotated.xml
+            grep -Fq 'AURA' aura-emulator-rotated.xml
+            adb exec-out screencap -p > aura-emulator-rotated.png
+            adb shell input keyevent KEYCODE_BACK
+            adb logcat -d -s AndroidRuntime:E > aura-emulator-runtime.log
+            if grep -F 'FATAL EXCEPTION' aura-emulator-runtime.log; then
+              echo 'FAIL AndroidRuntime crash'
+              exit 1
+            fi
+            echo 'PASS APK install, activity launch, portrait UI, rotation UI, no AndroidRuntime FATAL EXCEPTION'
+      - name: Save read-only emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AURA-v0.1.8-emulator-API35-evidence
+          path: |
+            aura-emulator-*.xml
+            aura-emulator-*.png
+            aura-emulator-runtime.log
+          if-no-files-found: warn
+          retention-days: 3
