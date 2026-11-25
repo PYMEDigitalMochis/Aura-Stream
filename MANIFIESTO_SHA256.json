@@ -11,7 +11,7 @@
     {
       "path": ".github/workflows/android-debug-manual.yml",
       "bytes": 2174,
-      "sha256": "7ad93c5b206e37cb4defde6594fcabb6adfbe01be35e928433827c089f03d8a0"
+      "sha256": "212b1cc735dce9e1d7f768f0b8305dd1fdf68a398c3c07d4b9a02cf2a9cbc820"
     },
     {
       "path": ".gitignore",
