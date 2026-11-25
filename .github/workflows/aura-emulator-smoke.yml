@@ -31,9 +31,10 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          target: google_apis
+          target: default
           arch: x86_64
-          profile: Nexus 6
+          profile: Nexus 5
+          ram-size: 2048M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
@@ -41,9 +42,17 @@ jobs:
             adb install -r downloaded/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
-            sleep 5
-            adb shell uiautomator dump /sdcard/aura.xml
-            adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml
+            sleep 8
+            for attempt in 1 2 3; do
+              adb shell uiautomator dump /sdcard/aura.xml || true
+              adb shell cat /sdcard/aura.xml > aura-emulator-portrait.xml || true
+              if grep -Fq 'Seleccionar video' aura-emulator-portrait.xml; then
+                break
+              fi
+              adb shell input keyevent KEYCODE_BACK || true
+              adb shell am start -W -n mx.detrasdelboton.aura/.MainActivity
+              sleep 5
+            done
             grep -Fq 'Seleccionar video' aura-emulator-portrait.xml
             grep -Fq 'AURA' aura-emulator-portrait.xml
             adb exec-out screencap -p > aura-emulator-portrait.png
