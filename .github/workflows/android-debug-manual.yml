@@ -1,0 +1,62 @@
+name: AURA Android debug - manual, private, gated
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: aura-android-debug-manual
+  cancel-in-progress: false
+jobs:
+  qa-portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install audited test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends chromium ffmpeg
+          python -m pip install --disable-pip-version-check playwright==1.57.0 beautifulsoup4==4.14.3
+      - name: Run complete portable gates in isolated worktree
+        run: sh tools/run_qa_isolated.sh
+  android-debug:
+    needs: qa-portable
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install API 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Build and lint candidate APK
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - name: Verify signed debug APK, assets, permissions and digest
+        run: |
+          python3 tools/check_apk_gate.py --apk app/build/outputs/apk/debug/app-debug.apk --sdk "$ANDROID_HOME" --source . --output AURA_APK_GATE.json
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > AURA-APK-DEBUG.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AURA-Android-v0.1.8-debug-NOT-PHYSICAL-QA
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            AURA-APK-DEBUG.sha256
+            AURA_APK_GATE.json
+          if-no-files-found: error
+          retention-days: 3
